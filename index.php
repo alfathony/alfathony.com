@@ -10,7 +10,7 @@
     <!--- basic page needs
     ================================================== -->
     <meta charset="utf-8">
-    <title>Hola</title>
+    <title>Alfathony</title>
     <meta name="description" content="">
     <meta name="author" content="">
 
@@ -75,9 +75,9 @@
                 <h3>Hello There</h3>
 
                 <h1>
-                    I am Jonathan Doe. <br>
-                    I am a graphic & UI/UX <br>
-                    designer based in Somewhere.
+                    I am Alfathony. <br>
+                    I am a UI/UX <br>
+                    designer based in Indonesia.
                 </h1>
 
                 <div class="home-content__buttons">
@@ -101,20 +101,20 @@
 
         <ul class="home-social">
             <li>
-                <a href="#"><i class="im im-facebook" aria-hidden="true"></i><span>Facebook</span></a>
+                <a href="https://web.facebook.com/alfatonny"><i class="im im-facebook" aria-hidden="true"></i><span>Facebook</span></a>
             </li>
             <li>
-                <a href="#"><i class="im im-twitter" aria-hidden="true"></i><span>Twiiter</span></a>
+                <a href="https://twitter.com/alfathony_"><i class="im im-twitter" aria-hidden="true"></i><span>Twiiter</span></a>
             </li>
             <li>
-                <a href="#"><i class="im im-instagram" aria-hidden="true"></i><span>Instagram</span></a>
+                <a href="https://instagram.com/alfathony"><i class="im im-instagram" aria-hidden="true"></i><span>Instagram</span></a>
             </li>
-            <li>
+            <!-- <li>
                 <a href="#"><i class="im im-behance" aria-hidden="true"></i><span>Behance</span></a>
             </li>
             <li>
                 <a href="#"><i class="im im-pinterest" aria-hidden="true"></i><span>Pinterest</span></a>
-            </li>
+            </li> -->
         </ul> 
         <!-- end home-social -->
 
