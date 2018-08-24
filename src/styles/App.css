@@ -1,0 +1,16 @@
+.navbar-light{
+  background-color: #FFC926;
+}
+
+
+
+.app-logo {
+  animation: App-logo-spin infinite 2s linear;
+  height: 40px;
+}
+
+@keyframes App-logo-spin {
+  from { transform: rotate(-15deg); }
+  50% { transform: rotate(15deg); }
+  to { transform: rotate(-15deg); }
+}
