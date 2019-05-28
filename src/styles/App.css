@@ -1,13 +1,29 @@
-.navbar-light{
-  background-color: #FFC926;
+@import url('https://fonts.googleapis.com/css?family=Libre+Baskerville:400,700&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
+
+h1{
+  font-family: 'Libre Baskerville', serif;
 }
-
-
-
+body{
+  background: #FFFFFF;
+}
 .app-logo {
-  animation: App-logo-spin infinite 2s linear;
-  height: 40px;
+  /* animation: App-logo-spin infinite 2s linear; */
+  height: 80px;
 }
+.media-social a{
+  color: var(--black);
+}
+.media-social a:hover{
+  color: var(--blue);
+}
+
+@media (max-width: 767.98px) { 
+  .display-3{
+    font-size: 3rem;
+  }
+}
+
 
 @keyframes App-logo-spin {
   from { transform: rotate(-15deg); }
