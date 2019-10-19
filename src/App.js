@@ -7,20 +7,20 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 
 class App extends Component {
-    render() {
-        return (
-            <Router>
-                <div className="App">
-                    <Navbar />
-                    <Switch>
-                        <Route exact path="/" component={Hero} />
-                        <Route path="/about-us" component={About} />
-                        <Route path="/contact-us" component={Contact} />
-                    </Switch>
-                </div>
-            </Router>
-        );
-    }
+  render() {
+    return (
+      <Router>
+        <div className="App">
+          <Navbar />
+          <Switch>
+            <Route exact path="/" component={Hero} />
+            <Route path="/about-us" component={About} />
+            <Route path="/contact-us" component={Contact} />
+          </Switch>
+        </div>
+      </Router>
+    );
+  }
 }
 
 export default App;
