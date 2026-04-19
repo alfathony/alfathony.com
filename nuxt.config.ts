@@ -4,8 +4,22 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxtjs/supabase',
-    '@nuxtjs/google-fonts'
+    '@nuxtjs/google-fonts',
+    'nuxt-security'
   ],
+
+  security: {
+    headers: {
+      crossOriginEmbedderPolicy: 'unsafe-none',
+      contentSecurityPolicy: {
+        'img-src': ["'self'", "data:", "https://*.supabase.co"],
+      }
+    },
+    rateLimiter: {
+      tokensPerInterval: 150,
+      interval: 'hour',
+    },
+  },
 
   supabase: {
     redirect: false
