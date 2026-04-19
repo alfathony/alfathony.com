@@ -1,5 +1,53 @@
 @import "tailwindcss";
 
 @theme {
-  --font-title: "Caprasimo", sans-serif;
+  /* Colors */
+  --color-primary-accent: #f5c842;
+  --color-text-dark: #2c2c2c; /* Dark charcoal text */
+  --color-text-light: #e5e5e5; /* Light gray text for dark mode */
+  --color-text-muted: #6b6b6b; /* Muted text for descriptions */
+  --color-text-muted-dark: #a0a0a0; /* Muted text for descriptions in dark mode */
+  --color-background-light: #ffffff; /* White dominant background */
+  --color-background-dark: #1a1a1a; /* Dark mode background */
+  --color-border-light: #e0e0e0; /* Light border */
+  --color-border-dark: #3a3a3a; /* Dark border */
+
+
+  /* Typography */
+  --font-serif: "Playfair Display", "Georgia", serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Base styles */
+body {
+  font-family: var(--font-sans);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #f5c842;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4a836;
 }
