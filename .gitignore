@@ -1,0 +1,29 @@
+# Nuxt dev/build outputs
+.output
+.nuxt
+dist
+node_modules
+*.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Test outputs
+coverage
+.nyc_output
+
+# Temporary files
+tmp
+temp
