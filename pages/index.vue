@@ -1,5 +1,7 @@
 <template>
-  <div class="portfolio">
+  <NuxtPage v-if="isNewHomepage" />
+
+  <div v-else class="portfolio">
     <ClientOnly>
       <CustomCursor />
     </ClientOnly>
@@ -411,6 +413,9 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
+
+const route = useRoute()
+const isNewHomepage = computed(() => route.path.startsWith('/new-homepage'))
 
 const heroCanvas = ref(null)
 const mouseCanvas = ref(null)

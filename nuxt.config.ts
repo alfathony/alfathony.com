@@ -12,7 +12,7 @@ export default defineNuxtConfig({
     headers: {
       crossOriginEmbedderPolicy: 'unsafe-none',
       contentSecurityPolicy: {
-        'img-src': ["'self'", "data:", "https://*.supabase.co"],
+        'img-src': ["'self'", "data:", "https://*.supabase.co", "https://images.unsplash.com"],
       }
     },
     rateLimiter: {
@@ -27,6 +27,7 @@ export default defineNuxtConfig({
 
   googleFonts: {
     families: {
+      'Archivo': [300, 400, 500, 600, 700],
       'Space Grotesk': [300, 400, 500, 600, 700],
       'DM Sans': [400, 500, 600],
       'Caveat': [400]
