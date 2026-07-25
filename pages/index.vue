@@ -54,10 +54,10 @@
         </p>
         
         <div class="hero-actions" ref="heroActions">
-          <a href="#work" class="hero-btn hero-btn-primary" data-cursor="Explore">
+          <a v-if="showWorkSections" href="#work" class="hero-btn hero-btn-primary" data-cursor="Explore">
             View Work
           </a>
-          <a href="mailto:hello@alfathony.com" class="hero-btn hero-btn-secondary" data-cursor="Say Hi">
+          <a href="https://wa.me/6285155260901" target="_blank" rel="noopener" class="hero-btn hero-btn-secondary" data-cursor="Say Hi">
             Say Hello
           </a>
         </div>
@@ -110,7 +110,7 @@
     </section>
 
     <!-- Beyond Design Section -->
-    <section id="about" class="beyond">
+    <section v-if="showWorkSections" id="about" class="beyond">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title">Beyond Design</h2>
@@ -133,7 +133,7 @@
     </section>
 
     <!-- Side Projects Section -->
-    <section class="side-projects">
+    <section v-if="showWorkSections" class="side-projects">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title">Side Projects</h2>
@@ -193,7 +193,7 @@
     </section>
 
     <!-- Selected Projects Section -->
-    <section id="work" class="selected" data-theme="dark">
+    <section v-if="showWorkSections" id="work" class="selected" data-theme="dark">
       <div class="container">
         <div class="section-header">
           <span class="section-label">Featured Work</span>
@@ -270,7 +270,7 @@
     </section>
 
     <!-- Journal Section -->
-    <section id="journal" class="journal">
+    <section v-if="showWorkSections" id="journal" class="journal">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title">Journal</h2>
@@ -310,7 +310,7 @@
     </section>
 
     <!-- Testimonials Section -->
-    <section class="testimonials">
+    <section v-if="showWorkSections" class="testimonials">
       <div class="container">
         <h2 class="section-title">Testimonials</h2>
         
@@ -365,13 +365,13 @@
               <div class="footer-col">
                 <h4>Menu</h4>
                 <a href="#about" @click.prevent="scrollToSection('about')">About</a>
-                <a href="#work" @click.prevent="scrollToSection('work')">Work</a>
-                <a href="#journal" @click.prevent="scrollToSection('journal')">Journal</a>
+                <a v-if="showWorkSections" href="#work" @click.prevent="scrollToSection('work')">Work</a>
+                <a v-if="showWorkSections" href="#journal" @click.prevent="scrollToSection('journal')">Journal</a>
               </div>
               <div class="footer-col">
                 <h4>Contact</h4>
                 <a href="mailto:hello@alfathony.com">hello@alfathony.com</a>
-                <a href="https://wa.me/6281234567890" target="_blank">WhatsApp</a>
+                <a href="https://wa.me/6285155260901" target="_blank">WhatsApp</a>
               </div>
             </div>
           </div>
@@ -736,12 +736,18 @@ const testimonials = [
   { text: 'Sometimes funny, always reliable. That\'s rare.', author: 'Friend' }
 ]
 
-const navItems = [
+// Toggle back to true to bring back Beyond Design, Side Projects,
+// Selected Projects, Journal and Testimonials (plus their nav/footer links).
+const showWorkSections = false
+
+const navItems = computed(() => [
   { id: 'about', label: 'About' },
-  { id: 'work', label: 'Work' },
-  { id: 'journal', label: 'Journal' },
+  ...(showWorkSections ? [
+    { id: 'work', label: 'Work' },
+    { id: 'journal', label: 'Journal' }
+  ] : []),
   { id: 'contact', label: 'Contact' }
-]
+])
 
 const showNav = ref(false)
 const activeSection = ref('home')
@@ -757,7 +763,7 @@ const scrollToSection = (id) => {
 }
 
 const updateActiveSection = () => {
-  const sections = ['home', 'about', 'work', 'journal', 'contact']
+  const sections = navItems.value.map(item => item.id)
   for (const id of sections) {
     const el = document.getElementById(id)
     if (el) {
