@@ -1,6 +1,9 @@
 # Nuxt dev/build outputs
 .output
 .nuxt
+.data
+.nitro
+.cache
 dist
 node_modules
 *.log
@@ -17,6 +20,7 @@ Thumbs.db
 # IDE files
 .vscode
 .idea
+.fleet
 *.swp
 *.swo
 

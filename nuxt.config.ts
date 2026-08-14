@@ -1,9 +1,9 @@
+// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  compatibilityDate: '2026-08-14',
   devtools: { enabled: false },
-  compatibilityDate: '2024-11-01',
 
   modules: [
-    '@nuxtjs/supabase',
     '@nuxtjs/google-fonts',
     'nuxt-security'
   ],
@@ -12,7 +12,7 @@ export default defineNuxtConfig({
     headers: {
       crossOriginEmbedderPolicy: 'unsafe-none',
       contentSecurityPolicy: {
-        'img-src': ["'self'", "data:", "https://*.supabase.co", "https://images.unsplash.com"],
+        'img-src': ["'self'", "data:", "https://images.unsplash.com"],
       }
     },
     rateLimiter: {
@@ -21,24 +21,8 @@ export default defineNuxtConfig({
     },
   },
 
-  supabase: {
-    redirect: false
-  },
-
   googleFonts: {
-    families: {
-      // Homepage (Hallmark · editorial · Atelier): display + body pairing
-      'Fraunces': [300, 400, 500],
-      'Newsreader': {
-        wght: [300, 400, 500, 600],
-        ital: [300, 400]
-      },
-      // Retained for /minimal, /creative, /brutalism, /new-homepage
-      'Archivo': [300, 400, 500, 600, 700],
-      'Space Grotesk': [300, 400, 500, 600, 700],
-      'DM Sans': [400, 500, 600],
-      'Caveat': [400]
-    },
+    families: {},
     display: 'swap'
   },
 
@@ -53,8 +37,6 @@ export default defineNuxtConfig({
       ]
     }
   },
-
-  css: ['~/assets/css/main.css'],
 
   ssr: false
 })
