@@ -27,6 +27,13 @@ export default defineNuxtConfig({
 
   googleFonts: {
     families: {
+      // Homepage (Hallmark · editorial · Atelier): display + body pairing
+      'Fraunces': [300, 400, 500],
+      'Newsreader': {
+        wght: [300, 400, 500, 600],
+        ital: [300, 400]
+      },
+      // Retained for /minimal, /creative, /brutalism, /new-homepage
       'Archivo': [300, 400, 500, 600, 700],
       'Space Grotesk': [300, 400, 500, 600, 700],
       'DM Sans': [400, 500, 600],
