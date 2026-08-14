@@ -1,0 +1,111 @@
+/*
+  WHITE GALLERY, BLACK WAVE CANVASES — design tokens.
+
+  The world: a white gallery hung with black-and-white wave canvases. Contrast is
+  generated optically, by line frequency, not by mixing greys. There is no #888
+  in this system; a "lighter" tone is a finer stripe seen from further away.
+
+  Two rules govern everything below:
+
+  1. The wall is the ground and it is white. Fields of ink are hung on it, framed
+     and finite. Ink never becomes the page background.
+  2. Grey is earned, not declared. Where the design wants a mid tone it uses a
+     wave frequency, not an opacity. The few --ink-* greys here are for type
+     only, where optical mixing would hurt legibility.
+
+  The one departure from the source: the brief pins a warm yellow accent. Rather
+  than bolt colour onto a monochrome system, the accent is a *frequency* — the
+  tightest band, the one the source itself calls WAVE ACCENT — and that band is
+  what gets painted yellow. Yellow is therefore always high-frequency, always
+  small, and never a ground.
+*/
+
+:root {
+  /* ---- Material ---- */
+  /* Canvases are pure white — the card's works sample #FFF. */
+  --gallery: #ffffff;
+  /*
+    The wall is MATTE PAPER, the material named on the QUALITY BAR card's own
+    swatch list, and the card's board and hero grounds sample 250–254 rather than
+    pure white. Held here at 250 so a hung canvas reads as an object ON a wall
+    instead of dissolving into it. This is a cited deviation from OWN-WORLD's
+    "#000 on #FFF", not an accident: #FFF is the canvas, matte paper is the room.
+  */
+  --wall: #fafaf8;
+  --ink: #000000;
+
+  /*
+    Type-only greys. Never used to fake a wave.
+    Both are held at or above 4.5:1 on --wall: this system puts real content
+    (project years, wall-label terms, the closing echo) in the quieter grey, so
+    a decorative-looking tone that fails contrast would be failing on content.
+  */
+  --ink-soft: #4a4a48;  /* ~8.6:1 on --wall */
+  --ink-faint: #6b6a63; /* ~5.1:1 on --wall */
+  --rule: #cfcdc5;
+
+  /* The accent band. */
+  --accent: #ffc400;
+  --accent-deep: #e0a600;
+
+  /* ---- Type ----
+     One family across the whole system, exactly as the source specifies: a tall
+     condensed grotesk for display and a neutral grotesk for text. Archivo's
+     width axis is what makes that one family instead of two. */
+  --face: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --wdth-display: 66;   /* tall, narrow, architectural */
+  --wdth-text: 100;
+  --wdth-caption: 87;
+
+  /* Extreme scale contrast is the composition. Do not narrow this range. */
+  --t-display: clamp(3.4rem, 12.5vw, 13rem);
+  --t-statement: clamp(2.1rem, 6.4vw, 6.5rem);
+  --t-large: clamp(1.5rem, 3vw, 2.75rem);
+  --t-body: clamp(1rem, 1.05vw, 1.1rem);
+  --t-small: 0.875rem;
+  --t-caption: 0.7rem;
+
+  --leading-display: 0.86;
+  --leading-statement: 0.96;
+  --leading-body: 1.6;
+
+  --track-display: -0.025em;
+  --track-statement: -0.018em;
+  --track-caption: 0.16em;
+
+  /* ---- Space ---- */
+  --s-1: 0.5rem;
+  --s-2: 1rem;
+  --s-3: 1.75rem;
+  --s-4: 3rem;
+  --s-5: 5rem;
+  --s-6: 8rem;
+  --s-7: 13rem;
+  --s-8: 21rem;
+
+  --gutter: clamp(1.25rem, 5vw, 5.5rem);
+  --measure: 33ch;
+  --hairline: 1px;
+
+  /* ---- Motion ----
+     Riley's canvases do not move. The viewer does. So nothing here bounces or
+     overshoots: motion is either the viewer's own scroll, or a slow drift the
+     eye reads as optical rather than animated. */
+  --ease-optical: cubic-bezier(0.33, 0, 0.15, 1);
+  --ease-snap: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 0.24s;
+  --dur-mid: 0.55s;
+  --dur-slow: 1s;
+
+  --z-cursor: 9999;
+  --z-chrome: 100;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0.01ms;
+    --dur-mid: 0.01ms;
+    --dur-slow: 0.01ms;
+  }
+}

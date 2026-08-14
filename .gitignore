@@ -37,3 +37,7 @@ temp
 .agents
 skills-lock.json
 .hallmark
+
+# Design-review working artifacts: verification screenshots and reference
+# boards. Durable design decisions live in DESIGN.md, not in these images.
+.impeccable
