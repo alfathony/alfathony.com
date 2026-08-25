@@ -1,48 +1,39 @@
 <script setup lang="ts">
 /*
-  THESIS: Information that was always present becoming legible, rather than
-  information being revealed. Refuses the portfolio arrangement of hero, about,
-  skills, project grid, contact.
+  One continuous scroll narrative, four ordered chapters, one <main>.
 
-  OWN-WORLD: A white gallery hung with black-and-white wave canvases. Pure #000
-  on #FFF, contrast generated optically by line frequency and never by mixing
-  greys. One family, Archivo, condensed to 66 for display and neutral for text.
-  Hairline-ruled wall labels carry all metadata. The accent is a frequency — the
-  tightest band — and that band alone is painted #FFC400.
-
-  STORY: A stranger meets an idea before they meet a person, watches it hold
-  across people, products and the space between them, sees what he has made and
-  who he is away from it, and leaves curious rather than informed.
-
-  FIRST VIEWPORT: A full-bleed wave field inset in white wall. The opening
-  sentence is already in the field at the same frequency and phase as its
-  surroundings, therefore invisible. Chapter mark top left, wall label bottom
-  left, scroll cue bottom right. Scroll shifts the phase inside the letterforms
-  until the sentence separates from the ground.
-
-  FORM: White gallery hung with black-and-white wave canvases; challenger card
-  chosen by the user over the assigned direction; seed key fe31d2da.
-
-  FINISH: unreviewed and undocumented is unfinished; this build ends with the
-  finish review, the verdict, and DESIGN.md
+  CH01–CH03 are nine Figma scenes each; CH04 is a single unified project index.
+  The visual composition is asymmetric on desktop, but this document reads
+  top-to-bottom in narrative order at every breakpoint and in every screen
+  reader — which is the whole reason the scene coordinates live in content and
+  not in the markup.
 */
+import { chapters } from '~/content/narrative'
 
 useHead({
-  htmlAttrs: { lang: 'en' },
+  title: 'Alfathony — Why I make, who I make for, and what I make',
+  meta: [
+    {
+      name: 'description',
+      content:
+        'Everything starts with a reason. A scroll narrative about why I make, who I make for, what I make, and the work that proves it.'
+    }
+  ]
 })
 </script>
 
 <template>
   <main>
-    <Ch01Opening />
-    <Ch02People />
-    <Ch03Products />
-    <Ch04Between />
-    <Ch05Work />
-    <Ch06Voices />
-    <Ch07Life />
-    <Ch08Why />
-    <Ch09Now />
-    <Ch10End />
+    <h1 class="visually-hidden">
+      Alfathony — things I make, things I think about, and everything in between
+    </h1>
+
+    <NarrativeChapter
+      v-for="chapter in chapters"
+      :key="chapter.id"
+      :chapter="chapter"
+    />
+
+    <Ch04SelectedWork />
   </main>
 </template>

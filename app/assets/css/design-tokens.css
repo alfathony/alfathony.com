@@ -1,0 +1,179 @@
+/*
+  ALFATHONY.COM — PHASE 1 DESIGN TOKENS
+
+  Source of truth: Figma `1qSu3POZTcOKZ0IzyYlCyC`
+    · Hi-Fi canvas            8:2
+    · Responsive direction   43:22  (rules panel 43:23)
+    · Developer handoff      47:32  → DEVELOPER_HANDOFF.md
+
+  Colour and type values below are the literal Figma variables, read from the
+  file, not eyeballed from a screenshot.
+
+  Two rules govern this file:
+
+  1. Every scene background is pure White. Paper (#ECE6D3) is the ON-COLOUR
+     foreground only — it is `Color/Text/On Dark` in Figma and it appears on
+     Cobalt. It is never a ribbon and never a page ground.
+  2. Nothing here is a proportional shrink of the desktop composition. The three
+     breakpoints are three discrete typographic settings, because the handoff
+     explicitly forbids scaling the desktop design down into a phone.
+
+  Mobile-first: the `:root` block is the <768px setting.
+*/
+
+:root {
+  /* ------------------------------------------------------------- colour ---
+     Figma: Color/Primitive/*, Color/Text/On Light, Color/Text/On Dark. */
+  --color-white: #ffffff;
+  --color-ink: #0d0d0d;
+  --color-cobalt-500: #302de8; /* primary ribbon */
+  --color-cobalt-700: #1f1fb8; /* deep accent only */
+  --color-red: #f12f25;        /* friction and change */
+  --color-yellow: #f7d22c;     /* discovery and realisation */
+  --color-green: #18a957;      /* resolution and progress */
+  --color-paper: #ece6d3;      /* on-colour foreground only — never a ground */
+
+  /* Semantic aliases. Components reference these, not the raw ramp. */
+  --surface: var(--color-white);
+  --text: var(--color-ink);
+  --rule: var(--color-ink); /* Figma draws the project dividers at full ink. */
+  --focus: var(--color-cobalt-500);
+
+  /* --------------------------------------------------------------- type ---
+     Figma loads Instrument Sans in Regular / Medium / SemiBold / Bold. */
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Helvetica, Arial, sans-serif;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /*
+    Figma stores letterSpacing as a percentage of the size:
+    Display -3%, Heading -2.5%, Brand -1%, Label +8%. The handoff floor is
+    -0.04em and nothing here goes past it.
+  */
+  --track-display: -0.03em;
+  --track-heading: -0.025em;
+  --track-brand: -0.01em;
+  --track-body: 0em;
+  --track-label: 0.08em;
+
+  /* MOBILE — one display step. Figma: UI/Responsive/Mobile/Display 44/48. */
+  --t-display-xl: 44px;
+  --lh-display-xl: 48px;
+  --t-display: 44px;
+  --lh-display: 48px;
+  --t-heading: 30px;
+  --lh-heading: 34px;
+  --t-body: 18px;
+  --lh-body: 26px;
+  --t-label: 12px;
+  --lh-label: 16px;
+  --t-brand: 18px;
+  --lh-brand: 22px;
+
+  /* ------------------------------------------------------------- layout --- */
+  --margin-x: 32px;
+  --header-block: 80px;   /* Figma mobile: menu at y16, 48px target, y16 */
+  --ribbon-width: 64px;   /* handoff table */
+  --scene-min: 100svh;    /* mobile: one narrative beat per viewport */
+  --scene-gap: 40px;      /* space between ribbon band and copy */
+  --copy-gap: 28px;       /* space between copy blocks in the vertical path */
+
+  /* The Figma design canvas. Every scene coordinate is a fraction of this. */
+  --canvas-w: 1440;
+  --canvas-h: 900;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* Every interactive control clears this in both axes. */
+  --tap-min: 48px;
+
+  --rule-width: 1px;
+  --focus-width: 3px;
+  --focus-offset: 4px;
+
+  /* ------------------------------------------------------------- motion ---
+     Phase 1 ships no choreography. These exist so Phase 2 inherits one clock
+     instead of inventing durations per component. Durations are the ones the
+     handoff already fixes. */
+  --dur-row: 120ms;    /* row focus dim */
+  --dur-fade: 160ms;   /* reduced-motion copy fade / thumbnail reveal */
+  --dur-open: 420ms;   /* thumbnail → case-study hero */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --z-ribbon: 0;
+  --z-content: 1;
+  --z-header: 50;
+  --z-overlay: 60;
+}
+
+/* ------------------------------------------------------------- tablet ---
+   Figma: Responsive / Tablet / 768x1024 (43:31). */
+@media (min-width: 768px) {
+  :root {
+    --t-display-xl: 64px;
+    --lh-display-xl: 68px;
+    --t-display: 64px;
+    --lh-display: 68px;
+    --t-heading: 40px;
+    --lh-heading: 44px;
+    --t-body: 20px;
+    --lh-body: 30px;
+    --t-label: 13px;
+    --lh-label: 18px;
+    --t-brand: 20px;
+    --lh-brand: 24px;
+
+    --margin-x: 48px;
+    --header-block: 96px;
+    --ribbon-width: 96px;
+    --scene-min: 80svh; /* tablet reads as one continuous vertical path */
+    --scene-gap: 56px;
+    --copy-gap: 32px;
+  }
+}
+
+/* ------------------------------------------------------------ desktop ---
+   Figma: the Hi-Fi canvas itself, 1440x900 per scene. Two display steps
+   (UI/Display/L 88/88 and UI/Display/XL 112/108) are in active use across the
+   27 scenes; see DESIGN_DECISIONS in the handoff report. */
+@media (min-width: 1200px) {
+  :root {
+    --t-display-xl: 112px;
+    --lh-display-xl: 108px;
+    --t-display: 88px;
+    --lh-display: 88px;
+    --t-heading: 54px;
+    --lh-heading: 60px;
+    --t-body: 24px;
+    --lh-body: 34px;
+    --t-label: 13px;
+    --lh-label: 18px;
+    --t-brand: 20px;
+    --lh-brand: 24px;
+
+    --margin-x: 64px;
+    --header-block: 112px;
+    --ribbon-width: 150px;
+    --scene-min: 100svh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-row: 1ms;
+    --dur-fade: 1ms;
+    --dur-open: 1ms;
+  }
+}

@@ -3,40 +3,30 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-08-14',
   devtools: { enabled: false },
 
-  modules: [
-    '@nuxtjs/google-fonts',
-    'nuxt-security'
-  ],
+  modules: ['@nuxtjs/google-fonts', 'nuxt-security'],
 
   security: {
     headers: {
-      crossOriginEmbedderPolicy: 'unsafe-none',
-      contentSecurityPolicy: {
-        'img-src': ["'self'", "data:", "https://images.unsplash.com"],
-      }
+      crossOriginEmbedderPolicy: 'unsafe-none'
     },
     rateLimiter: {
       tokensPerInterval: 150,
-      interval: 'hour',
-    },
+      interval: 'hour'
+    }
   },
 
-  css: ['~/assets/css/tokens.css', '~/assets/css/base.css'],
+  css: ['~/assets/css/design-tokens.css', '~/assets/css/design-base.css'],
 
-  // Chapters and WebGL pieces live in subfolders for maintainability, but they
-  // are referenced by their own names, not by their folder.
+  // Chapters, ribbon pieces and chrome live in subfolders for maintainability,
+  // but they are referenced by their own names, not by their folder.
   components: [{ path: '~/components', pathPrefix: false }],
 
-  // One face, carrying everything from an architectural headline to a stencilled
-  // mark — which is how real supergraphics work. The width axis is not
-  // decoration here: it is what lets the same face be painted across a wall and
-  // then whispered at 11px without swapping to a second family.
+  // Instrument Sans in the four weights the handoff names: Regular, Medium,
+  // SemiBold and Bold. Self-hosted at build so the first paint does not wait on
+  // a third party, and so no font request leaves the visitor's browser.
   googleFonts: {
     families: {
-      Archivo: {
-        wght: '100..900',
-        wdth: '62..125'
-      }
+      'Instrument Sans': [400, 500, 600, 700]
     },
     display: 'swap',
     download: true,
@@ -46,26 +36,34 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'en' },
-      title: 'Alfathony — Things I make, things I think about, and everything in between',
+      title: 'Alfathony — Why I make, who I make for, and what I make',
       meta: [
-        { name: 'description', content: 'I spend a lot of time making things make sense. And somehow, this became my job.' },
-        { name: 'theme-color', content: '#FAF9F5' }
+        {
+          name: 'description',
+          content:
+            'Everything starts with a reason. A scroll narrative about why I make, who I make for, what I make, and the work that proves it.'
+        },
+        // Every scene background is pure White; the browser chrome matches it.
+        { name: 'theme-color', content: '#FFFFFF' }
       ],
-      link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
-      ]
+      link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
     }
   },
 
   // SSR on: the narrative copy must exist in the HTML. It is what a visitor with
-  // reduced motion, a screen reader, or a dead WebGL context actually reads, and
-  // it is the whole of what a crawler sees. Every motion and WebGL layer mounts
-  // on top of that document, never in place of it.
+  // reduced motion, a screen reader, or a failed script actually reads, and it
+  // is the whole of what a crawler sees. Phase 2's motion layer mounts on top of
+  // that document, never in place of it.
   ssr: true,
 
   nitro: {
     prerender: {
-      routes: ['/'],
+      routes: [
+        '/',
+        '/work/kredivo-checkout',
+        '/work/bhinneka-custom-page',
+        '/work/logee-trucker'
+      ],
       crawlLinks: false
     }
   }

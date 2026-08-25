@@ -1,0 +1,312 @@
+/*
+  Base layer: reset, page ground, the type register, focus, and the scene
+  primitives every chapter is built from.
+
+  The scene primitive is the important part. Figma draws each scene as a
+  1440x900 frame with absolutely positioned text over a full-bleed ribbon. The
+  desktop rendering reproduces that frame as a percentage-positioned stage, so
+  the composition is exact at the 1440 reference frame and holds its
+  relationships either side of it. Tablet and mobile throw the frame away and
+  read as a vertical path: ribbon band, then copy, in DOM order.
+*/
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /*
+    `clip` rather than `hidden`: it prevents the horizontal overflow the
+    acceptance list forbids without turning the body into a scroll container,
+    which would break `position: sticky` for Phase 2.
+  */
+  overflow-x: clip;
+}
+
+h1, h2, h3, h4, p, figure, blockquote, dl, dd {
+  margin: 0;
+}
+
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+::selection {
+  background: var(--color-cobalt-500);
+  color: var(--color-paper);
+}
+
+/* --------------------------------------------------------------- focus ---
+   One visible focus ring for the whole site. Never removed, never reduced to a
+   colour change: the handoff requires keyboard focus to be visible and not
+   encoded by colour alone, so it is a ring with its own geometry. */
+:where(a, button, [tabindex]):focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+  border-radius: 2px;
+}
+
+/* --------------------------------------------------------------- a11y --- */
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  inset-block-start: var(--space-2);
+  inset-inline-start: var(--space-2);
+  z-index: var(--z-overlay);
+  padding: var(--space-3) var(--space-5);
+  min-block-size: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-weight: var(--weight-medium);
+  transform: translateY(calc(-100% - var(--space-4)));
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* ---------------------------------------------------------------- type ---
+   Named for the Figma text styles they implement, so a change in Figma has one
+   obvious landing site here. */
+.t-display-xl,
+.t-display {
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--track-display);
+  text-wrap: pretty;
+}
+
+.t-display-xl {
+  font-size: var(--t-display-xl);
+  line-height: var(--lh-display-xl);
+}
+
+.t-display {
+  font-size: var(--t-display);
+  line-height: var(--lh-display);
+}
+
+/* UI/Heading/L — 54/60. Project names and the three-beat process words. */
+.t-heading {
+  font-size: var(--t-heading);
+  line-height: var(--lh-heading);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--track-heading);
+  text-wrap: pretty;
+}
+
+/* UI/Body/L — 24/34. */
+.t-body {
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--track-body);
+  text-wrap: pretty;
+}
+
+/* UI/Body/L Strong — 24/34 SemiBold. Role and year. */
+.t-body-strong {
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--track-body);
+}
+
+/* UI/Label/Small — 13/18, +8% tracking, uppercase. */
+.t-label {
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+/* UI/Brand — 20/24 Bold. */
+.t-brand {
+  font-size: var(--t-brand);
+  line-height: var(--lh-brand);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--track-brand);
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------- shell --- */
+.shell {
+  padding-inline: var(--margin-x);
+}
+
+/* --------------------------------------------------------------- scene ---
+   MOBILE / TABLET: a vertical reading path. Ribbon band first (decorative and
+   out of the accessibility tree), copy after it, in DOM order. The ribbon can
+   never sit under the text here, which is what the responsive rules mean by
+   "never shrink a complex path into the text column". */
+.scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-block-size: var(--scene-min);
+  padding-block: var(--space-9);
+  background: var(--surface);
+}
+
+.scene__ribbon {
+  inline-size: 100%;
+  aspect-ratio: var(--canvas-w) / var(--canvas-h);
+  margin-block-end: var(--scene-gap);
+  pointer-events: none;
+}
+
+/* A scene with no ribbon (CH01 has one text-only beat) keeps its rhythm. */
+.scene--no-ribbon .scene__ribbon {
+  display: none;
+}
+
+.scene__stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--copy-gap);
+  padding-inline: var(--margin-x);
+}
+
+.scene__item {
+  max-inline-size: 34ch;
+}
+
+.scene__item--wide {
+  max-inline-size: none;
+}
+
+/* Figma hides the scroll cue on the 390x844 frame. */
+@media (max-width: 767px) {
+  .scene__item[data-hide-mobile='true'] {
+    display: none;
+  }
+}
+
+/* DESKTOP: reproduce the Figma frame. The stage carries the 1440x900 aspect and
+   every item is placed as a percentage of it, so the composition is exact at
+   the reference frame and keeps its proportions across desktop widths. The
+   ribbon shares the identical box, which is what keeps geometry and copy
+   registered to each other at every width. */
+@media (min-width: 1200px) {
+  .scene {
+    display: grid;
+    /* An explicit track. Without it the column is content-sized, the stage's
+       `100%` has nothing definite to resolve against, and the whole 1440x900
+       frame collapses to its intrinsic width — which is zero, because every
+       item in it is absolutely positioned. */
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    padding-block: 0;
+    overflow: clip;
+  }
+
+  .scene__ribbon,
+  .scene__stage {
+    grid-area: 1 / 1;
+    inline-size: min(100%, 1920px);
+    margin-inline: auto;
+    aspect-ratio: var(--canvas-w) / var(--canvas-h);
+  }
+
+  .scene__ribbon {
+    margin-block-end: 0;
+    z-index: var(--z-ribbon);
+  }
+
+  .scene__stage {
+    position: relative;
+    display: block;
+    z-index: var(--z-content);
+    padding-inline: 0;
+  }
+
+  .scene__item {
+    position: absolute;
+    inset-block-start: calc(var(--y) * 1%);
+    inset-inline-start: calc(var(--x) * 1%);
+    inline-size: calc(var(--w) * 1%);
+    max-inline-size: none;
+  }
+}
+
+/* -------------------------------------------------------------- ribbon ---
+   The ribbon is a stroked path, exactly as authored in Figma: round caps, round
+   joins, solid colour, no fill.
+
+   `preserveAspectRatio: none` plus `vector-effect: non-scaling-stroke` is the
+   whole trick. The geometry stretches to the stage box so a path at x=64 in the
+   Figma canvas lands under the copy that Figma also put at x=64, at any
+   viewport width — while the stroke stays in screen pixels, which is how the
+   ribbon holds its specified 150 / 96 / 64px width instead of scaling with the
+   canvas. */
+.ribbon {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.ribbon__path {
+  fill: none;
+  stroke-width: var(--ribbon-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.ribbon__path[data-color='cobalt']      { stroke: var(--color-cobalt-500); }
+.ribbon__path[data-color='cobalt-deep'] { stroke: var(--color-cobalt-700); }
+.ribbon__path[data-color='red']         { stroke: var(--color-red); }
+.ribbon__path[data-color='yellow']      { stroke: var(--color-yellow); }
+.ribbon__path[data-color='green']       { stroke: var(--color-green); }
