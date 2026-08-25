@@ -20,6 +20,18 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/*
+  Scroll lock for the navigation overlay. The scrollbar's width is handed back
+  as padding so locking does not shift the page sideways under the panel.
+*/
+html.is-nav-open {
+  overflow: hidden;
+}
+
+html.is-nav-open body {
+  padding-inline-end: var(--scrollbar-gutter, 0px);
+}
+
 body {
   margin: 0;
   background: var(--surface);

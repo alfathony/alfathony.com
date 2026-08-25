@@ -36,7 +36,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'en' },
-      title: 'Alfathony — Why I make, who I make for, and what I make',
+      title: 'Alfathony — Designer',
       meta: [
         {
           name: 'description',
@@ -60,6 +60,11 @@ export default defineNuxtConfig({
     prerender: {
       routes: [
         '/',
+        '/about',
+        '/work',
+        '/library',
+        '/journal',
+        '/contact',
         '/work/kredivo-checkout',
         '/work/bhinneka-custom-page',
         '/work/logee-trucker'

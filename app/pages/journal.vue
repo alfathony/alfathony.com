@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /*
-  HOME — temporary placeholder. The next phase replaces this with the real homepage: a positioning statement, featured work, an About teaser, and entry points into Work, Library and Journal.
+  JOURNAL — writing in progress. The journal system itself is out of scope for this phase.
 
   Content is deliberately thin: this phase ships the route, the shared chrome
   and the visual language, not the page. Replacing it means replacing this
@@ -8,7 +8,7 @@
 */
 import { placeholderPages } from '~/content/site'
 
-const page = placeholderPages['/']!
+const page = placeholderPages['/journal']!
 
 useHead({
   title: page.title,

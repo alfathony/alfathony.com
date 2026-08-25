@@ -7,15 +7,25 @@
   interaction target."
 
   Geometry is the exported vector verbatim: r=4.5 circles at 14.5 / 33.5 in a
-  48x48 box. The dots take `currentColor` rather than a fixed ink, because
-  Figma also ships a Paper-coloured variant of this icon for when the trigger
-  sits on a colour field.
+  48x48 box. The dots take `currentColor`, because Figma ships a Paper-coloured
+  variant of this icon for when the trigger sits on a colour field — which is
+  exactly what happens when the navigation panel is open behind it.
+
+  The trigger stays above the panel and keeps toggling it, so there is one
+  control with one `aria-expanded` state rather than a separate close button
+  with a second, competing story about what is open.
 */
 defineProps<{ expanded: boolean; controls: string }>()
+
+const el = useTemplateRef<HTMLButtonElement>('el')
+
+/* The panel returns focus here when it closes. */
+defineExpose({ focus: () => el.value?.focus() })
 </script>
 
 <template>
   <button
+    ref="el"
     class="menu-trigger"
     type="button"
     aria-label="Open navigation"
@@ -38,7 +48,7 @@ defineProps<{ expanded: boolean; controls: string }>()
   block-size: var(--tap-min);
   display: grid;
   place-items: center;
-  color: var(--color-ink);
+  color: inherit;
   cursor: pointer;
 }
 

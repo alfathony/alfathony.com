@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /*
-  HOME — temporary placeholder. The next phase replaces this with the real homepage: a positioning statement, featured work, an About teaser, and entry points into Work, Library and Journal.
+  WORK — the project index. Selected Work currently lives inside the About narrative, where it acts as the proof of the story; this route becomes the full index.
 
   Content is deliberately thin: this phase ships the route, the shared chrome
   and the visual language, not the page. Replacing it means replacing this
@@ -8,7 +8,7 @@
 */
 import { placeholderPages } from '~/content/site'
 
-const page = placeholderPages['/']!
+const page = placeholderPages['/work']!
 
 useHead({
   title: page.title,

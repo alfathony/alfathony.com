@@ -17,18 +17,6 @@ import type { Scene } from '~/content/narrative'
 
 const props = defineProps<{ scene: Scene }>()
 
-const CANVAS_W = 1440
-const CANVAS_H = 900
-
-/** Figma pixels → percentages of the stage. */
-function place(x: number, y: number, w: number) {
-  return {
-    '--x': ((x / CANVAS_W) * 100).toFixed(4),
-    '--y': ((y / CANVAS_H) * 100).toFixed(4),
-    '--w': ((w / CANVAS_W) * 100).toFixed(4)
-  }
-}
-
 const kindClass: Record<string, string> = {
   'display-xl': 't-display-xl',
   display: 't-display',
@@ -57,7 +45,7 @@ const hasRibbon = computed(() => props.scene.ribbons.length > 0)
         :key="item.id"
         class="scene__item"
         :class="[kindClass[item.kind], { 'scene__item--wide': item.kind === 'label' }]"
-        :style="place(item.x, item.y, item.w)"
+        :style="placeOnCanvas(item.x, item.y, item.w)"
         :data-hide-mobile="item.hideOnMobile ? 'true' : undefined"
       >
         {{ item.text }}

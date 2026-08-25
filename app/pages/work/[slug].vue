@@ -24,7 +24,7 @@ useHead(() => ({ title: `${project.value?.name ?? 'Work'} — Alfathony` }))
 </script>
 
 <template>
-  <main v-if="project" class="case">
+  <main v-if="project" id="main-content" class="case">
     <p class="t-label case__number">{{ project.number }}</p>
     <h1 class="t-display case__name">{{ project.name }}</h1>
 
