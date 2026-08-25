@@ -55,11 +55,33 @@ export interface SceneText {
   hideOnMobile?: boolean
 }
 
+/**
+ * How quickly a scene resolves.
+ *
+ * `build`   — complexity accumulating; the ribbon keeps drawing deep into the
+ *             scene and the copy arrives last.
+ * `settle`  — the default rhythm.
+ * `direct`  — a resolution beat. The line completes early and the copy is
+ *             there almost immediately, so release reads as release.
+ */
+export type SceneTempo = 'build' | 'settle' | 'direct'
+
+/**
+ * How much scroll a scene is worth.
+ *
+ * Not a compaction exercise — the long form is the point. This only removes
+ * scroll distance where a scene had nothing left to develop, and adds it where
+ * staggered copy needs room to finish before the scene leaves.
+ */
+export type ScenePace = 'minimal' | 'tight' | 'default' | 'roomy'
+
 export interface Scene {
   /** `ch01.s01` — also the value of `data-scene`. */
   id: string
   ribbons: RibbonPath[]
   texts: SceneText[]
+  tempo?: SceneTempo
+  pace?: ScenePace
 }
 
 export interface Chapter {
@@ -78,6 +100,8 @@ const ch01: Chapter = {
   scenes: [
     {
       id: 'ch01.s01',
+      tempo: 'settle',
+      pace: 'default',
       ribbons: [
         {
           id: 'ch01-s01-hero',
@@ -92,6 +116,8 @@ const ch01: Chapter = {
     },
     {
       id: 'ch01.s02',
+      tempo: 'direct',
+      pace: 'tight',
       ribbons: [
         { id: 'ch01-s02-obvious', color: 'green', d: 'M-140 260H1090C1230 260 1300 330 1300 470V1040' }
       ],
@@ -102,6 +128,8 @@ const ch01: Chapter = {
     },
     {
       id: 'ch01.s03',
+      tempo: 'build',
+      pace: 'roomy',
       ribbons: [
         {
           id: 'ch01-s03-longer',
@@ -120,6 +148,8 @@ const ch01: Chapter = {
          Cobalt, Red and Yellow simultaneously, and no copy: the ribbon is the
          whole statement here. */
       id: 'ch01.s04',
+      tempo: 'build',
+      pace: 'roomy',
       ribbons: [
         {
           id: 'ch01-s04-cobalt',
@@ -141,6 +171,8 @@ const ch01: Chapter = {
     },
     {
       id: 'ch01.s05',
+      tempo: 'direct',
+      pace: 'default',
       ribbons: [
         { id: 'ch01-s05-resolving', color: 'cobalt', d: 'M-180 170C160 170 130 500 410 500C700 500 650 720 920 720H1540' }
       ],
@@ -151,6 +183,8 @@ const ch01: Chapter = {
     },
     {
       id: 'ch01.s06',
+      tempo: 'direct',
+      pace: 'default',
       ribbons: [
         { id: 'ch01-s06-resolved', color: 'green', d: 'M-120 150H1080C1240 150 1320 230 1320 390V1000' }
       ],
@@ -165,6 +199,8 @@ const ch01: Chapter = {
          which is the colour its own layer name and the palette semantics
          (Green = resolution and progress) both call for. */
       id: 'ch01.s07',
+      tempo: 'build',
+      pace: 'roomy',
       ribbons: [
         { id: 'ch01-s07-problem', color: 'red', d: 'M-100 680H300C380 680 420 640 420 560V450' },
         { id: 'ch01-s07-idea', color: 'cobalt', d: 'M420 450V320C420 240 460 200 540 200H850C930 200 970 240 970 320V450' },
@@ -181,6 +217,8 @@ const ch01: Chapter = {
     },
     {
       id: 'ch01.s08',
+      tempo: 'direct',
+      pace: 'default',
       ribbons: [
         { id: 'ch01-s08-threshold', color: 'green', d: 'M-120 710H220C320 710 370 660 370 560V280C370 170 430 120 540 120H1540' }
       ],
@@ -192,6 +230,8 @@ const ch01: Chapter = {
     },
     {
       id: 'ch01.s09',
+      tempo: 'settle',
+      pace: 'default',
       ribbons: [
         { id: 'ch01-s09-exit', color: 'yellow', d: 'M1160 -120V510C1160 650 1230 720 1370 720H1580' }
       ],
@@ -212,6 +252,8 @@ const ch02: Chapter = {
   scenes: [
     {
       id: 'ch02.s01',
+      tempo: 'direct',
+      pace: 'default',
       ribbons: [
         { id: 'ch02-s01-answer', color: 'yellow', d: 'M1160 -120V500C1160 650 1085 725 935 725H-120' }
       ],
@@ -222,6 +264,8 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s02',
+      tempo: 'build',
+      pace: 'roomy',
       ribbons: [
         {
           id: 'ch02-s02-complicated',
@@ -237,6 +281,8 @@ const ch02: Chapter = {
       /* Content order is fixed by the responsive rules: Habits → Expectations
          → Assumptions, whatever the composition does with them. */
       id: 'ch02.s03',
+      tempo: 'settle',
+      pace: 'roomy',
       ribbons: [
         {
           id: 'ch02-s03-repeated',
@@ -252,6 +298,8 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s04',
+      tempo: 'build',
+      pace: 'default',
       ribbons: [
         {
           id: 'ch02-s04-uncertainty',
@@ -266,6 +314,8 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s05',
+      tempo: 'settle',
+      pace: 'tight',
       ribbons: [
         {
           id: 'ch02-s05-attention',
@@ -279,6 +329,8 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s06',
+      tempo: 'settle',
+      pace: 'roomy',
       ribbons: [
         {
           id: 'ch02-s06-observed',
@@ -295,6 +347,8 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s07',
+      tempo: 'direct',
+      pace: 'tight',
       ribbons: [
         {
           id: 'ch02-s07-good-idea',
@@ -309,6 +363,8 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s08',
+      tempo: 'settle',
+      pace: 'default',
       ribbons: [
         {
           id: 'ch02-s08-matters',
@@ -322,6 +378,8 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s09',
+      tempo: 'direct',
+      pace: 'default',
       ribbons: [
         {
           id: 'ch02-s09-start',
@@ -348,6 +406,8 @@ const ch03: Chapter = {
   scenes: [
     {
       id: 'ch03.s01',
+      tempo: 'settle',
+      pace: 'default',
       ribbons: [
         { id: 'ch03-s01-hard-part', color: 'green', d: 'M-120 700H430C540 700 595 645 595 535V-120' }
       ],
@@ -358,6 +418,8 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s02',
+      tempo: 'settle',
+      pace: 'default',
       ribbons: [
         {
           id: 'ch03-s02-to-action',
@@ -373,6 +435,8 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s03',
+      tempo: 'build',
+      pace: 'roomy',
       ribbons: [
         {
           id: 'ch03-s03-possibility',
@@ -388,6 +452,8 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s04',
+      tempo: 'direct',
+      pace: 'tight',
       ribbons: [
         {
           id: 'ch03-s04-becoming',
@@ -403,6 +469,8 @@ const ch03: Chapter = {
       /* The second and last beat where two paths run at once. Red is the
          friction crossing the cobalt line of the work. */
       id: 'ch03.s05',
+      tempo: 'build',
+      pace: 'roomy',
       ribbons: [
         {
           id: 'ch03-s05-cobalt',
@@ -421,6 +489,8 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s06',
+      tempo: 'build',
+      pace: 'roomy',
       ribbons: [
         { id: 'ch03-s06-rebuild', color: 'red', d: 'M-120 450H270L430 250L600 650L790 250L980 650L1170 450H1560' }
       ],
@@ -433,6 +503,8 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s07',
+      tempo: 'settle',
+      pace: 'default',
       ribbons: [
         {
           id: 'ch03-s07-becoming-real',
@@ -447,6 +519,8 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s08',
+      tempo: 'direct',
+      pace: 'default',
       ribbons: [
         {
           id: 'ch03-s08-works-to-sense',
@@ -461,6 +535,8 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s09',
+      tempo: 'direct',
+      pace: 'default',
       ribbons: [
         { id: 'ch03-s09-exit', color: 'yellow', d: 'M1120 -120V500C1120 650 1195 725 1345 725H1560' }
       ],

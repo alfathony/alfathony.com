@@ -1,61 +1,84 @@
 /**
- * CH04 — the selected project index.
+ * THE PROJECT SOURCE.
  *
- * This content is LOCKED by the developer handoff. Names, roles, years and
- * impact lines are reproduced verbatim from Figma node `32:10`; do not
- * paraphrase them, and do not add a fourth project without a handoff update.
+ * One dataset, consumed by every surface that talks about a project: the
+ * Selected Work conclusion inside /about, the project index at /work when it is
+ * built, and the case-study routes. Nothing restates a role, a year or an
+ * impact line in a component.
  *
- * `preview` describes the dummy thumbnail only. Figma marks it "Hover Thumbnail
- * / Dummy" and the handoff says thumbnails stay placeholders until verified
- * project imagery is supplied — so it is drawn, not photographed, and it is
- * decorative in the accessibility tree.
+ * The content is LOCKED by the developer handoff and reproduced verbatim from
+ * Figma node `32:10`. Do not paraphrase it, and do not add a fourth project
+ * without a handoff update.
+ *
+ * `slug` is the identity. `href` is derived from it so a route can never drift
+ * from the record it points at.
  */
 
 export interface Project {
+  /** Identity. The case-study route is derived from this. */
+  slug: string
   /** Two-digit index as shown in the row. */
   number: string
   name: string
   role: string
   year: string
   impact: string
-  /** Case study route. The pages are stubs until Phase 2 builds them out. */
-  href: string
-  /** Accent used by the dummy thumbnail graphic. */
-  preview: 'yellow' | 'paper' | 'green'
+  /**
+   * Accent for the dummy thumbnail. Figma marks the preview "Hover Thumbnail /
+   * Dummy"; it stays a drawn placeholder until verified project imagery
+   * arrives, and it is decorative in the accessibility tree throughout.
+   */
+  thumbnail: { accent: 'yellow' | 'paper' | 'green' }
+  /** Shown in the Selected Work conclusion on /about. */
+  featured: boolean
 }
 
 export const projects: Project[] = [
   {
+    slug: 'kredivo-checkout',
     number: '01',
     name: 'Kredivo Checkout',
     role: 'Senior UX Designer',
     year: '2022–Present',
     impact: '+4% settlement rate through an end-to-end checkout redesign.',
-    href: '/work/kredivo-checkout',
-    preview: 'yellow'
+    thumbnail: { accent: 'yellow' },
+    featured: true
   },
   {
+    slug: 'bhinneka-custom-page',
     number: '02',
     name: 'Bhinneka Custom Page',
     role: 'Product Designer',
     year: '2019',
     impact:
       'Enabled marketing to manage modular homepage content independently, supporting year-over-year revenue growth.',
-    href: '/work/bhinneka-custom-page',
-    preview: 'paper'
+    thumbnail: { accent: 'paper' },
+    featured: true
   },
   {
+    slug: 'logee-trucker',
     number: '03',
     name: 'Logee Trucker',
     role: 'Product Designer',
     year: '2021',
     impact:
       'Enabled operators to detect one-hour driver stops and contact drivers directly from trip history.',
-    href: '/work/logee-trucker',
-    preview: 'green'
+    thumbnail: { accent: 'green' },
+    featured: true
   }
 ]
 
-export function projectByHref(href: string): Project | undefined {
-  return projects.find((project) => project.href === href)
+/** The one place a project route is spelled. */
+export function projectHref(project: Project): string {
+  return `/work/${project.slug}`
 }
+
+/** The Selected Work conclusion on /about. */
+export const featuredProjects: Project[] = projects.filter((project) => project.featured)
+
+export function projectBySlug(slug: string): Project | undefined {
+  return projects.find((project) => project.slug === slug)
+}
+
+/** Every case-study route, for the prerender manifest. */
+export const projectRoutes: string[] = projects.map(projectHref)

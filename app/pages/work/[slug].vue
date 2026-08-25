@@ -9,12 +9,10 @@
 
   Phase 2 replaces the body of this page; the route and the data lookup stay.
 */
-import { projects } from '~/content/work'
+import { projectBySlug } from '~/content/work'
 
 const route = useRoute()
-const project = computed(() =>
-  projects.find((candidate) => candidate.href === `/work/${route.params.slug}`)
-)
+const project = computed(() => projectBySlug(String(route.params.slug)))
 
 if (!project.value) {
   throw createError({ statusCode: 404, statusMessage: 'Project not found', fatal: true })

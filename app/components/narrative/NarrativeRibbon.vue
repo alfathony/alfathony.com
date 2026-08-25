@@ -14,15 +14,23 @@
   pixels; that is how the ribbon holds its specified 150 / 96 / 64px width per
   breakpoint instead of quietly scaling with the canvas.
 
-  PHASE 2: `d` is the only thing that needs to change to morph a state. Every
-  path carries a stable `id`, and the scene carries `data-scene`, so a timeline
-  can address geometry without depending on DOM position.
+  DRAWING
+  `pathLength="1"` is the whole trick. It renormalises the path so that, for
+  dash purposes, every path is exactly 1 unit long regardless of its real
+  geometry. That means the draw is `stroke-dasharray: 1` against a dashoffset of
+  `1 - progress`, in CSS, with no `getTotalLength()` call and no measurement of
+  any kind — nothing recalculates when the viewport changes, and adding a path
+  costs nothing.
+
+  Where a scene carries more than one path, `--i` staggers them, so the
+  peak-complexity beat accumulates Cobalt, then Red, then Yellow rather than
+  flashing all three at once.
 */
 import type { RibbonPath } from '~/content/narrative'
 
 defineProps<{
   paths: RibbonPath[]
-  /** Scene id, e.g. `ch01.peak` — the Phase 2 addressing handle. */
+  /** Scene id, e.g. `ch01.peak` — the choreography's addressing handle. */
   state: string
 }>()
 </script>
@@ -30,6 +38,7 @@ defineProps<{
 <template>
   <svg
     class="ribbon"
+    :class="{ 'ribbon--multi': paths.length > 1 }"
     :data-ribbon-state="state"
     viewBox="0 0 1440 900"
     preserveAspectRatio="none"
@@ -37,12 +46,14 @@ defineProps<{
     focusable="false"
   >
     <path
-      v-for="path in paths"
+      v-for="(path, index) in paths"
       :id="path.id"
       :key="path.id"
       class="ribbon__path"
+      :style="{ '--i': index }"
       :data-color="path.color"
       :d="path.d"
+      path-length="1"
       :transform="path.dx || path.dy ? `translate(${path.dx ?? 0} ${path.dy ?? 0})` : undefined"
     />
   </svg>

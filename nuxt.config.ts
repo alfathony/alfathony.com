@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { projectRoutes } from './app/content/work'
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-08-14',
   devtools: { enabled: false },
@@ -65,9 +67,9 @@ export default defineNuxtConfig({
         '/library',
         '/journal',
         '/contact',
-        '/work/kredivo-checkout',
-        '/work/bhinneka-custom-page',
-        '/work/logee-trucker'
+        /* Case-study routes come from the project source, so adding a project
+           cannot leave its page unprerendered. */
+        ...projectRoutes
       ],
       crawlLinks: false
     }

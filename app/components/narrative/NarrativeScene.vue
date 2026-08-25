@@ -12,10 +12,18 @@
 
   `texts` is authored in reading order, so DOM order stays logical even where
   the desktop composition is asymmetric.
+
+  MOTION
+  The scene registers itself with the shared engine and is then driven entirely
+  through attributes and custom properties — `data-armed`, `data-entered` and
+  `--draw`. It owns no listener, no observer and no animation frame of its own.
 */
 import type { Scene } from '~/content/narrative'
 
 const props = defineProps<{ scene: Scene }>()
+
+const root = useTemplateRef<HTMLElement>('root')
+useNarrativeMotion(root, () => props.scene.tempo ?? 'settle')
 
 const kindClass: Record<string, string> = {
   'display-xl': 't-display-xl',
@@ -30,9 +38,12 @@ const hasRibbon = computed(() => props.scene.ribbons.length > 0)
 
 <template>
   <div
+    ref="root"
     class="scene"
     :class="{ 'scene--no-ribbon': !hasRibbon }"
     :data-scene="scene.id"
+    :data-tempo="scene.tempo ?? 'settle'"
+    :data-pace="scene.pace ?? 'default'"
   >
     <div class="scene__ribbon">
       <NarrativeRibbon v-if="hasRibbon" :paths="scene.ribbons" :state="scene.id" />
@@ -40,12 +51,12 @@ const hasRibbon = computed(() => props.scene.ribbons.length > 0)
 
     <div class="scene__stage">
       <p
-        v-for="item in scene.texts"
+        v-for="(item, index) in scene.texts"
         :id="item.id"
         :key="item.id"
-        class="scene__item"
+        class="scene__item reveal"
         :class="[kindClass[item.kind], { 'scene__item--wide': item.kind === 'label' }]"
-        :style="placeOnCanvas(item.x, item.y, item.w)"
+        :style="{ ...placeOnCanvas(item.x, item.y, item.w), '--copy-i': index }"
         :data-hide-mobile="item.hideOnMobile ? 'true' : undefined"
       >
         {{ item.text }}

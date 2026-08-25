@@ -1,50 +1,209 @@
 <script setup lang="ts">
 /*
-  CH04 — one unified project index, not one scene per project.
+  CH04 — one unified project index, and the narrative's conclusion.
 
-  Figma node `32:10`. The measurements below are that frame's: a 1312 content
-  width inside the 64px margin, four tracks at 48 / 324 / 258 / 586 with 32px
-  gaps, and 204px rows separated by full-width 1px ink rules.
+  Figma node `32:10`. The measurements are that frame's: a 1312 content width
+  inside the 64px margin, four tracks at 48 / 324 / 258 / 586 with 32px gaps,
+  and 204px rows separated by full-width 1px ink rules.
 
+  THE LEAD-IN
+  CH03 leaves the frame on a Yellow line travelling right at y=725. CH04 opens
+  on that same line, at that same height, running dead straight — the ribbon has
+  stopped searching. That is the whole gesture, and after it the index runs on
+  white with no ribbon at all, because here the work is the subject.
+
+  THE ROW
   The row is the link. The whole row, not the project name — so the target is
   large, the accessible name reads "Kredivo Checkout, Role: Senior UX Designer,
   Year: 2022–Present, Impact: …", and keyboard focus lands on exactly the thing
   a pointer would hit.
 
-  Nothing essential lives in the preview. It is a dummy thumbnail, decorative,
-  `pointer-events: none`, and every fact it shows is already in the row.
-
-  PHASE 2 mounts here: `data-ch04-state` carries the registered index states
-  (idle / row-focus / thumbnail / exit), the preview is the element that starts
-  following the pointer with 120ms lag, and non-focused rows drop to 45%
-  opacity over 120ms. Phase 1 ships the reduced-motion baseline the handoff
-  already specifies — a preview fixed beside its own row.
+  THE PREVIEW
+  One element for the whole index, not one per row, so only ever one is visible
+  and only one animation frame is ever in flight. With a fine pointer it eases
+  toward the cursor — smoothed, not pinned, and clamped inside the viewport.
+  With the keyboard it appears stationary beside the focused row, which is the
+  same information without the movement. It is decorative and
+  `pointer-events: none`; every fact it shows is already in the row, so nothing
+  is lost to anyone who never triggers it.
 */
-import { projects } from '~/content/work'
+import type { Scene } from '~/content/narrative'
+import { featuredProjects, projectHref } from '~/content/work'
+import { prefersReducedMotion } from '~/composables/useReducedMotion'
+
+/* The ribbon settling into a straight line, at the exact height and colour
+   CH03's exit hands over on. */
+const leadIn: Scene = {
+  id: 'ch04.settle',
+  tempo: 'direct',
+  pace: 'minimal',
+  ribbons: [{ id: 'ch04-settle', color: 'yellow', d: 'M-120 725H1560' }],
+  texts: []
+}
+
+const index = useTemplateRef<HTMLElement>('index')
+useNarrativeMotion(index, () => 'direct')
+
+const activeIndex = ref<number | null>(null)
+const stationary = ref(false)
+const preview = useTemplateRef<HTMLElement>('preview')
+
+const activeProject = computed(() =>
+  activeIndex.value === null ? null : featuredProjects[activeIndex.value] ?? null
+)
+
+/* ------------------------------------------------------------- pointer --- */
+const target = { x: 0, y: 0 }
+const eased = { x: 0, y: 0 }
+let frame = 0
+let primed = false
+
+function canFollow() {
+  return (
+    !prefersReducedMotion() &&
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  )
+}
+
+/** Keep the whole preview on screen, whatever the pointer is doing. */
+function clampToViewport(x: number, y: number) {
+  const node = preview.value
+  const margin = 16
+  const w = node?.offsetWidth ?? 320
+  const h = node?.offsetHeight ?? 214
+  return {
+    x: Math.min(Math.max(x, margin), window.innerWidth - w - margin),
+    y: Math.min(Math.max(y, margin), window.innerHeight - h - margin)
+  }
+}
+
+function paint() {
+  frame = 0
+  if (activeIndex.value === null || stationary.value) return
+
+  /* Exponential ease toward the pointer — roughly the 120ms lag the handoff
+     asks for, without pinning the preview rigidly to the cursor. */
+  eased.x += (target.x - eased.x) * 0.16
+  eased.y += (target.y - eased.y) * 0.16
+
+  const { x, y } = clampToViewport(eased.x, eased.y)
+  preview.value?.style.setProperty('transform', `translate3d(${x}px, ${y}px, 0)`)
+
+  if (Math.abs(target.x - eased.x) > 0.4 || Math.abs(target.y - eased.y) > 0.4) {
+    frame = requestAnimationFrame(paint)
+  }
+}
+
+function schedule() {
+  if (!frame) frame = requestAnimationFrame(paint)
+}
+
+function onPointerEnter(event: PointerEvent, i: number) {
+  if (event.pointerType !== 'mouse' || !canFollow()) return
+  stationary.value = false
+  activeIndex.value = i
+  target.x = event.clientX + 28
+  target.y = event.clientY + 24
+  if (!primed) {
+    /* First reveal snaps to the cursor rather than flying in from the corner. */
+    eased.x = target.x
+    eased.y = target.y
+    primed = true
+  }
+  schedule()
+}
+
+function onPointerMove(event: PointerEvent) {
+  if (activeIndex.value === null || stationary.value) return
+  target.x = event.clientX + 28
+  target.y = event.clientY + 24
+  schedule()
+}
+
+function clearPointer() {
+  if (stationary.value) return
+  activeIndex.value = null
+  primed = false
+}
+
+/* -------------------------------------------------------------- focus --- */
+/* Keyboard gets the same preview, held still beside its row. */
+function onFocusIn(event: FocusEvent) {
+  const row = (event.target as HTMLElement)?.closest?.('.work__row') as HTMLElement | null
+  if (!row) return
+  const i = Number(row.dataset.rowIndex)
+  if (Number.isNaN(i)) return
+  if (!window.matchMedia('(min-width: 1200px)').matches) return
+
+  stationary.value = true
+  activeIndex.value = i
+
+  nextTick(() => {
+    const rect = row.getBoundingClientRect()
+    const { x, y } = clampToViewport(rect.right - (preview.value?.offsetWidth ?? 320), rect.top)
+    preview.value?.style.setProperty('transform', `translate3d(${x}px, ${y}px, 0)`)
+  })
+}
+
+function onFocusOut(event: FocusEvent) {
+  const next = event.relatedTarget as HTMLElement | null
+  if (next?.closest?.('.work__row')) return
+  if (!stationary.value) return
+  activeIndex.value = null
+  stationary.value = false
+}
+
+onBeforeUnmount(() => {
+  if (frame) cancelAnimationFrame(frame)
+})
 </script>
 
 <template>
   <section id="selected-work" aria-labelledby="selected-work-heading" class="work">
     <h2 id="selected-work-heading" class="visually-hidden">Selected Work</h2>
 
-    <div class="work__inner" data-ch04-state="idle">
-      <p class="t-display work__display">Ideas become real<br class="work__break">through the work.</p>
+    <div class="work__lead">
+      <NarrativeScene :scene="leadIn" />
+    </div>
 
-      <p class="t-body work__intro">
+    <div ref="index" class="work__inner" data-ch04-state="idle">
+      <p class="t-display work__display reveal" style="--copy-i: 0">
+        Ideas become real<br class="work__break">through the work.
+      </p>
+
+      <p class="t-body work__intro reveal" style="--copy-i: 1">
         Here are three projects where clarity turned into measurable progress.
       </p>
 
-      <p class="t-label work__section-label">Selected work</p>
+      <p class="t-label work__section-label reveal" style="--copy-i: 2">Selected work</p>
 
-      <div class="work__columns t-label" aria-hidden="true">
+      <div class="work__columns t-label reveal" style="--copy-i: 3" aria-hidden="true">
         <span class="work__col-project">Project</span>
         <span class="work__col-meta">Role · Year</span>
         <span class="work__col-impact">Impact</span>
       </div>
 
-      <ul class="work__index">
-        <li v-for="project in projects" :key="project.href">
-          <a class="work__row" :href="project.href">
+      <ul
+        class="work__index"
+        :data-previewing="activeIndex !== null ? 'true' : 'false'"
+        @pointermove="onPointerMove"
+        @pointerleave="clearPointer"
+        @focusin="onFocusIn"
+        @focusout="onFocusOut"
+      >
+        <li
+          v-for="(project, i) in featuredProjects"
+          :key="project.slug"
+          class="reveal"
+          :style="{ '--copy-i': 4 + i }"
+        >
+          <a
+            class="work__row"
+            :class="{ 'is-dimmed': activeIndex !== null && activeIndex !== i }"
+            :href="projectHref(project)"
+            :data-row-index="i"
+            @pointerenter="onPointerEnter($event, i)"
+          >
             <span class="t-label work__number">{{ project.number }}</span>
 
             <h3 class="t-heading work__name">{{ project.name }}</h3>
@@ -57,17 +216,32 @@ import { projects } from '~/content/work'
             <p class="t-body work__impact">
               <span class="visually-hidden">Impact: </span>{{ project.impact }}
             </p>
-
-            <span class="work__preview" aria-hidden="true">
-              <svg class="work__preview-graphic" viewBox="0 0 360 240" preserveAspectRatio="xMidYMid slice" focusable="false">
-                <circle cx="330" cy="40" r="110" :class="`work__preview-dot work__preview-dot--${project.preview}`" />
-              </svg>
-              <span class="t-label work__preview-label">Preview · {{ project.number }}</span>
-              <span class="t-heading work__preview-title">{{ project.name }}</span>
-            </span>
           </a>
         </li>
       </ul>
+    </div>
+
+    <!-- One preview for the whole index. Decorative, and it never takes a click. -->
+    <div
+      ref="preview"
+      class="work__preview"
+      :data-visible="activeProject ? 'true' : 'false'"
+      aria-hidden="true"
+    >
+      <template v-if="activeProject">
+        <svg class="work__preview-graphic" viewBox="0 0 360 240" preserveAspectRatio="xMidYMid slice" focusable="false">
+          <!--
+            Parked clear of the type. Figma's dummy lets the accent run behind
+            the title, which is survivable on Yellow and invisible on Paper —
+            Paper type on a Paper shape is nothing at all. Sitting it above the
+            title's cap line keeps every accent legible without touching the
+            palette or the shape language.
+          -->
+          <circle cx="340" cy="-40" r="100" :class="`work__preview-dot work__preview-dot--${activeProject.thumbnail.accent}`" />
+        </svg>
+        <span class="t-label work__preview-label">Preview · {{ activeProject.number }}</span>
+        <span class="t-heading work__preview-title">{{ activeProject.name }}</span>
+      </template>
     </div>
   </section>
 </template>
@@ -75,7 +249,7 @@ import { projects } from '~/content/work'
 <style scoped>
 .work {
   background: var(--surface);
-  padding-block: var(--space-9) calc(var(--space-9) * 1.5);
+  padding-block: 0 calc(var(--space-9) * 1.5);
 }
 
 .work__inner {
@@ -151,12 +325,32 @@ import { projects } from '~/content/work'
 
 /* ---------------------------------------------------------- preview --- */
 .work__preview {
-  display: none;
-  position: absolute;
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: var(--z-content);
+  inline-size: clamp(260px, 24vw, 360px);
+  aspect-ratio: 360 / 240;
+  padding: var(--space-5);
   overflow: clip;
   background: var(--color-cobalt-500);
   color: var(--color-paper);
+  /* It can never take a click, a hover or a tap from the row underneath. */
   pointer-events: none;
+  opacity: 0;
+  scale: 0.96;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-fade) var(--ease-out-expo),
+    scale var(--dur-fade) var(--ease-out-expo),
+    visibility 0s linear var(--dur-fade);
+}
+
+.work__preview[data-visible='true'] {
+  opacity: 1;
+  scale: 1;
+  visibility: visible;
+  transition-delay: 0s;
 }
 
 .work__preview-graphic {
@@ -176,6 +370,25 @@ import { projects } from '~/content/work'
   display: block;
 }
 
+.work__preview-title {
+  margin-block-start: var(--space-6);
+}
+
+/* Below the desktop breakpoint there is nowhere sensible to put it, and the
+   row already carries every fact it would show. */
+@media (max-width: 1199px) {
+  .work__preview {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work__preview {
+    transition: opacity 1ms linear;
+    scale: 1;
+  }
+}
+
 /* ----------------------------------------------------------- tablet ---
    Project and role/year sit above impact. */
 @media (min-width: 768px) {
@@ -192,6 +405,13 @@ import { projects } from '~/content/work'
 /* ---------------------------------------------------------- desktop ---
    Three columns after the index number, on the Figma track widths. */
 @media (min-width: 1200px) {
+  .work__columns {
+    display: grid;
+    grid-template-columns: 3.6585% 24.6951% 19.6646% 44.6646%;
+    column-gap: 2.439%;
+    margin-block-start: var(--space-6);
+  }
+
   .work__break {
     display: inline;
   }
@@ -202,13 +422,6 @@ import { projects } from '~/content/work'
 
   .work__intro {
     max-inline-size: 54.17%; /* 780 of 1440 */
-  }
-
-  .work__columns {
-    display: grid;
-    grid-template-columns: 3.6585% 24.6951% 19.6646% 44.6646%;
-    column-gap: 2.439%;
-    margin-block-start: var(--space-6);
   }
 
   .work__col-project { grid-column: 2; }
@@ -226,6 +439,7 @@ import { projects } from '~/content/work'
     align-items: start;
     min-block-size: 204px;
     padding-block: 20px;
+    transition: opacity var(--dur-row) var(--ease-out-expo);
   }
 
   .work__number {
@@ -233,25 +447,19 @@ import { projects } from '~/content/work'
     padding-block-start: 8px;
   }
 
-  .work__preview {
-    display: block;
-    inset-inline-start: 68.6%;
-    inset-block-start: 50%;
-    translate: 0 -50%;
-    inline-size: 27.44%;
-    aspect-ratio: 360 / 240;
-    padding: var(--space-5);
-    opacity: 0;
-    transition: opacity var(--dur-fade) var(--ease-out-expo);
+  /*
+    The handoff asks for 45% on the inactive rows. That lands ink around 3.5:1
+    on white, which fails AA for body text, so the dim stops at a level that
+    still reads as recessive and still passes. Deliberate deviation.
+  */
+  .work__row.is-dimmed {
+    opacity: 0.72;
   }
+}
 
-  .work__preview-title {
-    margin-block-start: var(--space-6);
-  }
-
-  .work__row:hover .work__preview,
-  .work__row:focus-visible .work__preview {
-    opacity: 1;
+@media (prefers-reduced-motion: reduce) {
+  .work__row {
+    transition: none;
   }
 }
 </style>

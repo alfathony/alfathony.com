@@ -137,6 +137,13 @@ button {
   font-weight: var(--weight-bold);
   letter-spacing: var(--track-display);
   text-wrap: pretty;
+  /*
+    A safety net, not a style. At 320px the column is 256px and a word like
+    "Understanding" is wider than that at display size, so it would push the
+    page sideways. `break-word` only ever acts when a word genuinely cannot
+    fit — every wider breakpoint is untouched.
+  */
+  overflow-wrap: break-word;
 }
 
 .t-display-xl {
@@ -156,6 +163,7 @@ button {
   font-weight: var(--weight-bold);
   letter-spacing: var(--track-heading);
   text-wrap: pretty;
+  overflow-wrap: break-word;
 }
 
 /* UI/Body/L — 24/34. */
@@ -208,9 +216,34 @@ button {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  /*
+    `min-block-size`, never `block-size`: a scene is at least this tall and then
+    grows with its content, so nothing depends on an exact viewport height and
+    a long line can never be cropped by a short window.
+  */
   min-block-size: var(--scene-min);
   padding-block: var(--space-9);
   background: var(--surface);
+}
+
+/*
+  PACING. Scroll distance follows what a scene actually has to develop.
+  `tight` is for a single short line over simple geometry, which used to hold a
+  full viewport after it had finished saying anything. `roomy` is for scenes
+  whose staggered copy needs room to land before the scene leaves.
+*/
+.scene[data-pace='tight'] {
+  min-block-size: calc(var(--scene-min) * 0.78);
+}
+
+.scene[data-pace='roomy'] {
+  min-block-size: calc(var(--scene-min) * 1.18);
+}
+
+/* A transition beat rather than a scene — enough scroll to read the gesture,
+   not enough to stall. */
+.scene[data-pace='minimal'] {
+  min-block-size: calc(var(--scene-min) * 0.46);
 }
 
 .scene__ribbon {
@@ -273,6 +306,18 @@ button {
     aspect-ratio: var(--canvas-w) / var(--canvas-h);
   }
 
+  /*
+    On desktop a scene's height is its frame, so `min-block-size` cannot make one
+    shorter — the 1440x900 stage always wins. A `minimal` beat carries no copy to
+    keep registered with the ribbon, so it can give up the frame and run as a
+    band instead. This is what stops CH04's hand-off line from holding a full
+    viewport to say one straight thing.
+  */
+  .scene[data-pace='minimal'] .scene__ribbon,
+  .scene[data-pace='minimal'] .scene__stage {
+    aspect-ratio: var(--canvas-w) / 420;
+  }
+
   .scene__ribbon {
     margin-block-end: 0;
     z-index: var(--z-ribbon);
@@ -322,3 +367,104 @@ button {
 .ribbon__path[data-color='red']         { stroke: var(--color-red); }
 .ribbon__path[data-color='yellow']      { stroke: var(--color-yellow); }
 .ribbon__path[data-color='green']       { stroke: var(--color-green); }
+
+/* ======================================================================== */
+/*  MOTION                                                                  */
+/*                                                                          */
+/*  Everything below is gated on `[data-armed]`, which only the motion       */
+/*  engine sets, and only when the visitor has not asked for reduced motion. */
+/*  So the resting state of this document — server-rendered, script-free, or */
+/*  reduced-motion — is the finished state: copy visible, ribbons drawn.     */
+/*  Nothing here can leave content hidden.                                   */
+/* ======================================================================== */
+
+/* -------------------------------------------------------------- ribbon --- */
+/*
+  Each path is renormalised to `pathLength="1"`, so one dash of length 1 is the
+  whole path whatever its real geometry, and the draw is just the offset. No
+  measurement, no recalculation on resize.
+
+  `--i` staggers multi-path scenes: path 0 leads, each subsequent path starts a
+  fifth of the scene later and they overlap — which is how peak complexity
+  accumulates instead of appearing all at once.
+*/
+.ribbon__path {
+  stroke-dasharray: 1;
+  /* Single path: the draw simply tracks the scene's progress. */
+  --p: clamp(0, var(--draw, 1), 1);
+  stroke-dashoffset: calc(1 - var(--p));
+}
+
+/*
+  More than one path in a scene, so they accumulate rather than arrive together:
+  each starts a fifth of the scene after the one before and they overlap. This
+  is how the peak-complexity beat builds Cobalt, then Red, then Yellow.
+*/
+.ribbon--multi .ribbon__path {
+  /*
+    Each path starts a fifth of the scene after the one before, and 1.75 is what
+    makes the last of three still reach full length by the time the scene
+    settles: 2 x 0.2 offset + 1/1.75 span = 0.97. At 1.6 the final path stalls
+    at 96% drawn and the peak never actually completes.
+  */
+  --p: clamp(0, calc((var(--draw, 1) - var(--i, 0) * 0.2) * 1.75), 1);
+}
+
+/* ---------------------------------------------------------------- copy --- */
+/*
+  Fade and a short lift, nothing else. No word splitting, no letter animation,
+  no typewriter: the text is one live, selectable text node throughout.
+*/
+[data-armed] .reveal {
+  opacity: 0;
+  transform: translate3d(0, var(--copy-shift), 0);
+  transition:
+    opacity var(--copy-dur) var(--ease-out-expo),
+    transform var(--copy-dur) var(--ease-out-expo);
+  transition-delay: calc(var(--copy-lead) + var(--copy-i, 0) * var(--copy-step));
+}
+
+[data-armed][data-entered] .reveal {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+  Per-tempo timing, so scenes do not all arrive at the same speed. A complexity
+  beat builds; a resolution beat is simply there.
+*/
+.scene[data-tempo='build'] {
+  --copy-dur: 700ms;
+  --copy-lead: 220ms;
+  --copy-step: 95ms;
+}
+
+.scene[data-tempo='settle'] {
+  --copy-dur: 560ms;
+  --copy-lead: 140ms;
+  --copy-step: 80ms;
+}
+
+.scene[data-tempo='direct'] {
+  --copy-dur: 420ms;
+  --copy-lead: 60ms;
+  --copy-step: 60ms;
+}
+
+/*
+  A final guard rather than a mechanism. The reduced-motion path is that the
+  engine never starts, so `[data-armed]` never appears and none of the rules
+  above ever match — but if a preference changes mid-session, this makes the
+  page correct immediately instead of at the next reload.
+*/
+@media (prefers-reduced-motion: reduce) {
+  [data-armed] .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .ribbon__path {
+    stroke-dashoffset: 0;
+  }
+}

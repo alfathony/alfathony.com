@@ -107,6 +107,12 @@
      Phase 1 ships no choreography. These exist so Phase 2 inherits one clock
      instead of inventing durations per component. Durations are the ones the
      handoff already fixes. */
+  /* Copy entrance: a fade plus a short lift. The brief's range is 12-24px. */
+  --copy-shift: 14px;
+  --copy-dur: 560ms;
+  --copy-lead: 140ms;
+  --copy-step: 80ms;
+
   --dur-row: 120ms;    /* row focus dim */
   --dur-fade: 160ms;   /* reduced-motion copy fade / thumbnail reveal */
   --dur-open: 420ms;   /* thumbnail → case-study hero */
@@ -137,6 +143,7 @@
 
     --margin-x: 48px;
     --header-block: 96px;
+    --copy-shift: 18px;
     --ribbon-width: 96px;
     --scene-min: 80svh; /* tablet reads as one continuous vertical path */
     --scene-gap: 56px;
@@ -167,6 +174,7 @@
     --header-block: 112px;
     --ribbon-width: 150px;
     --scene-min: 100svh;
+    --copy-shift: 22px;
   }
 }
 
