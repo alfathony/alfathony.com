@@ -14,24 +14,15 @@
  */
 import { ref } from 'vue'
 import { projects } from '~/content/projects'
+import { workSignature } from '~/content/fields'
 
 const hovered = ref<number | null>(null)
-
-/** Each project reads as a different work, derived from its position. */
-function signature(i: number) {
-  return {
-    frequency: [18, 44, 27, 60, 12][i % 5],
-    amplitude: [0.14, 0.06, 0.19, 0.09, 0.03][i % 5],
-    cycles: [1.2, 2.8, 0.7, 3.6, 1.9][i % 5],
-    duty: [0.46, 0.42, 0.48, 0.4, 0.5][i % 5],
-  }
-}
 </script>
 
 <template>
-  <section id="chapter-05" class="work">
+  <section id="chapter-05" class="chapter work">
     <ChapterMark index="05" label="Things I've had my hands on" />
-    <div class="work__head">
+    <div class="chapter__head">
       <h2 v-reveal class="statement work__lead">
         <span class="cut cut-line">Some things I've</span> <span class="cut cut-line">had my hands on.</span>
       </h2>
@@ -60,7 +51,7 @@ function signature(i: number) {
             :src="project.image"
             :alt="`${project.name} — project image`"
           >
-          <WaveBlock v-else v-bind="signature(i)" reactive />
+          <WaveBlock v-else v-bind="workSignature(i)" reactive />
         </component>
 
         <WallLabel
@@ -77,19 +68,6 @@ function signature(i: number) {
 </template>
 
 <style scoped>
-.work {
-  position: relative;
-  padding: var(--s-7) var(--gutter);
-  background: var(--wall);
-}
-
-.work__head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-  margin-bottom: var(--s-6);
-}
-
 /*
   The cut stripes are derived from the canvases hanging below them, not picked:
   a plate is (viewport − gutters − 2 gaps) / 3 wide at 4:3, and the first

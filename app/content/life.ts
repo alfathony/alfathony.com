@@ -10,20 +10,20 @@
  * the chapter swaps to real footage with no other change.
  */
 
+import type { WaveField } from './fields'
+
 export interface LifeSubject {
   label: string
   /** Path under /public, e.g. '/life/music.mp4'. Empty renders the wave field. */
   video: string
   /** Poster frame for the video. */
   poster: string
-  /** Wave signature standing in for the footage, tuned per subject. */
-  field: {
-    frequency: number
-    amplitude: number
-    cycles: number
-    duty: number
-    vertical?: boolean
-  }
+  /**
+   * Wave signature standing in for the footage, tuned per subject. Stays here
+   * rather than in `fields.ts` because a field that substitutes for missing
+   * footage belongs beside the thing it substitutes for.
+   */
+  field: WaveField
 }
 
 export const life: LifeSubject[] = [

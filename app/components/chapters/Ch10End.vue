@@ -9,6 +9,7 @@
  * The close is navigation, not a pitch. No "let's build something together".
  */
 import { endNav } from '~/content/now'
+import { closingField } from '~/content/fields'
 </script>
 
 <template>
@@ -21,14 +22,14 @@ import { endNav } from '~/content/now'
       does not make. It is framed and labelled like every other work here.
     -->
     <div class="end__field">
-      <WaveBlock :frequency="10" :amplitude="0.04" :cycles="0.9" :duty="0.09" reactive />
+      <WaveBlock v-bind="closingField" reactive />
     </div>
     <p class="caption end__fieldlabel">Untitled (closing) — line frequency on white</p>
 
     <div class="end__body">
 
-      <p v-reveal class="end__echo">I spend a lot of time making things make sense.</p>
-      <p v-reveal="{ delay: 0.25 }" class="end__echo end__echo--strong">
+      <p v-reveal class="lead end__echo">I spend a lot of time making things make sense.</p>
+      <p v-reveal="{ delay: 0.25 }" class="lead lead--strong end__echo">
         And I probably will for a while.
       </p>
 
@@ -94,16 +95,9 @@ import { endNav } from '~/content/now'
   gap: var(--s-3);
 }
 
+/* Type register comes from `.lead` / `.lead--strong`; only the measure is local. */
 .end__echo {
   max-width: 30ch;
-  font-size: var(--t-large);
-  line-height: 1.25;
-  font-variation-settings: 'wdth' 96, 'wght' 300;
-  color: var(--ink);
-}
-
-.end__echo--strong {
-  font-variation-settings: 'wdth' 88, 'wght' 700;
 }
 
 .end__signature {

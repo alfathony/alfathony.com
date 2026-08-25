@@ -8,18 +8,13 @@
  * shipped thing (wide, calm, regular). Same material throughout — it is the same
  * work at four stages, not four different things.
  */
-const stages = [
-  { term: 'A question', frequency: 62, amplitude: 0.22, cycles: 3.8, duty: 0.38 },
-  { term: 'A pattern', frequency: 40, amplitude: 0.14, cycles: 2.4, duty: 0.42 },
-  { term: 'A structure', frequency: 22, amplitude: 0.07, cycles: 1.5, duty: 0.46 },
-  { term: 'A product', frequency: 12, amplitude: 0.02, cycles: 0.8, duty: 0.5 },
-]
+import { stages } from '~/content/fields'
 </script>
 
 <template>
-  <section id="chapter-03" class="products">
+  <section id="chapter-03" class="chapter products">
     <ChapterMark index="03" label="For products" />
-    <div class="products__head">
+    <div class="chapter__head">
       <h2 v-reveal class="statement products__lead">
         Then I turn those questions into products.
       </h2>
@@ -31,13 +26,7 @@ const stages = [
     >
       <li v-for="(s, i) in stages" :key="s.term" class="products__stage">
         <div class="products__field">
-          <WaveBlock
-            :frequency="s.frequency"
-            :amplitude="s.amplitude"
-            :cycles="s.cycles"
-            :duty="s.duty"
-            :phase="i * 0.9"
-          />
+          <WaveBlock v-bind="s.field" />
         </div>
         <WallLabel
           :title="s.term"
@@ -47,8 +36,8 @@ const stages = [
     </ol>
 
     <div class="products__close">
-      <p v-reveal class="products__line">Design is usually where I start.</p>
-      <p v-reveal="{ delay: 0.25 }" class="products__line products__line--strong">
+      <p v-reveal class="lead">Design is usually where I start.</p>
+      <p v-reveal="{ delay: 0.25 }" class="lead lead--strong products__line--strong">
         It doesn't have to be where I stop.
       </p>
     </div>
@@ -56,19 +45,6 @@ const stages = [
 </template>
 
 <style scoped>
-.products {
-  position: relative;
-  padding: var(--s-7) var(--gutter);
-  background: var(--wall);
-}
-
-.products__head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-  margin-bottom: var(--s-6);
-}
-
 .products__lead {
   max-width: 17ch;
 }
@@ -97,17 +73,9 @@ const stages = [
   text-align: right;
 }
 
-.products__line {
-  font-size: var(--t-large);
-  line-height: 1.25;
-  font-variation-settings: 'wdth' 96, 'wght' 300;
-  color: var(--ink);
-}
-
+/* Type register comes from `.lead` / `.lead--strong`; only the gap is local. */
 .products__line--strong {
   margin-top: var(--s-2);
-  font-variation-settings: 'wdth' 88, 'wght' 700;
-  color: var(--ink);
 }
 
 @media (max-width: 780px) {

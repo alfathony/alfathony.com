@@ -42,10 +42,6 @@
   background: var(--wall);
 }
 
-.why__mark {
-  margin-bottom: var(--s-8);
-}
-
 .why__principle {
   max-width: 26ch;
   font-size: clamp(1.5rem, 2.6vw, 2.4rem);
@@ -66,10 +62,6 @@
 @media (max-width: 700px) {
   .why {
     min-height: 110vh;
-  }
-
-  .why__mark {
-    margin-bottom: var(--s-6);
   }
 }
 </style>

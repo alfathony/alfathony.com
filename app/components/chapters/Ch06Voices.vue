@@ -11,12 +11,13 @@
  * real rendering with no layout change. That is the entire mechanism.
  */
 import { voices, slotCount, awaitingNote } from '~/content/voices'
+import { voicesSlotField } from '~/content/fields'
 </script>
 
 <template>
-  <section id="chapter-06" class="voices">
+  <section id="chapter-06" class="chapter voices">
     <ChapterMark index="06" label="People I've worked with" />
-    <div class="voices__head">
+    <div class="chapter__head">
       <h2 v-reveal class="statement voices__lead">
         Apparently, people don't hate working with me.
       </h2>
@@ -54,14 +55,7 @@ import { voices, slotCount, awaitingNote } from '~/content/voices'
         class="voices__note"
       >
         <div class="voices__slot">
-          <WaveBlock
-            v-if="n === 1"
-            :frequency="26"
-            :amplitude="0.1"
-            :cycles="1.6"
-            :duty="0.45"
-            reactive
-          />
+          <WaveBlock v-if="n === 1" v-bind="voicesSlotField" reactive />
         </div>
         <WallLabel
           :title="`Untitled (${String(n).padStart(2, '0')})`"
@@ -81,18 +75,9 @@ import { voices, slotCount, awaitingNote } from '~/content/voices'
 </template>
 
 <style scoped>
+/* Shell comes from `.chapter`; the ruled edges are this chapter's own. */
 .voices {
-  position: relative;
-  padding: var(--s-7) var(--gutter);
-  background: var(--wall);
   border-block: var(--hairline) solid var(--ink);
-}
-
-.voices__head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-  margin-bottom: var(--s-6);
 }
 
 .voices__lead {

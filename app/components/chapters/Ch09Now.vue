@@ -28,9 +28,9 @@ function stamp(iso: string) {
 </script>
 
 <template>
-  <section id="chapter-09" class="now">
+  <section id="chapter-09" class="chapter now">
     <ChapterMark index="09" label="Now" />
-    <div class="now__head">
+    <div class="chapter__head now__head">
       <h2 v-reveal class="statement now__lead">I'm still making things.</h2>
     </div>
 
@@ -58,16 +58,11 @@ function stamp(iso: string) {
 </template>
 
 <style scoped>
-.now {
-  position: relative;
-  padding: var(--s-7) var(--gutter);
-  background: var(--wall);
-}
-
+/*
+  Tighter than the shared `.chapter__head`: the list below reads as one table
+  with its own top rule, and the standard gap floated the heading off it.
+*/
 .now__head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
   margin-bottom: var(--s-5);
 }
 

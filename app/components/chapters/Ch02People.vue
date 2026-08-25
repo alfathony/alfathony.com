@@ -8,13 +8,7 @@
  * same five behaviours, each at its own frequency, because a person hesitating
  * and a person dropping off are not the same signal.
  */
-const readings = [
-  { label: 'Hesitation', frequency: 16, amplitude: 0.11, cycles: 0.9 },
-  { label: 'Confusion', frequency: 46, amplitude: 0.16, cycles: 2.6 },
-  { label: 'Friction', frequency: 28, amplitude: 0.05, cycles: 3.4 },
-  { label: 'The click', frequency: 9, amplitude: 0.02, cycles: 0.6 },
-  { label: 'Drop-off', frequency: 34, amplitude: 0.2, cycles: 1.1 },
-]
+import { readings } from '~/content/fields'
 </script>
 
 <template>
@@ -31,7 +25,7 @@ const readings = [
 
         <div
           v-reveal="{ children: '.people__line', stagger: 0.14, y: 18 }"
-          class="people__lines"
+          class="lead people__lines"
         >
           <p class="people__line">Why they hesitate.</p>
           <p class="people__line">Why they click.</p>
@@ -50,12 +44,7 @@ const readings = [
       >
         <li v-for="r in readings" :key="r.label" class="people__reading">
           <div class="people__field">
-            <WaveBlock
-              :frequency="r.frequency"
-              :amplitude="r.amplitude"
-              :cycles="r.cycles"
-              :duty="0.4"
-            />
+            <WaveBlock v-bind="r.field" />
           </div>
           <p class="caption">{{ r.label }}</p>
         </li>
@@ -94,15 +83,12 @@ const readings = [
   margin-top: var(--s-2);
 }
 
+/* Type register comes from `.lead`; this rule only stacks the lines. */
 .people__lines {
   display: flex;
   flex-direction: column;
   gap: var(--s-2);
   margin-top: var(--s-3);
-  font-size: var(--t-large);
-  line-height: 1.25;
-  font-variation-settings: 'wdth' 96, 'wght' 300;
-  color: var(--ink);
 }
 
 .people__line--wide {

@@ -14,9 +14,9 @@ import { life } from '~/content/life'
 </script>
 
 <template>
-  <section id="chapter-07" class="life">
+  <section id="chapter-07" class="chapter life">
     <ChapterMark index="07" label="Outside" />
-    <div class="life__head">
+    <div class="chapter__head">
       <h2 v-reveal class="statement life__lead">When I'm not making things make sense…</h2>
     </div>
 
@@ -46,19 +46,6 @@ import { life } from '~/content/life'
 </template>
 
 <style scoped>
-.life {
-  position: relative;
-  padding: var(--s-7) var(--gutter);
-  background: var(--wall);
-}
-
-.life__head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-  margin-bottom: var(--s-6);
-}
-
 .life__lead {
   max-width: 20ch;
 }

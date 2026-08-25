@@ -65,9 +65,9 @@ function onLeave(index: number) {
 </script>
 
 <template>
-  <section id="chapter-04" class="between">
+  <section id="chapter-04" class="chapter between">
     <ChapterMark index="04" label="Somewhere between" />
-    <div class="between__head">
+    <div class="chapter__head">
       <h2 v-reveal class="statement between__lead">
         The interesting part is usually somewhere between.
       </h2>
@@ -95,25 +95,16 @@ function onLeave(index: number) {
       </li>
     </ul>
 
-    <p v-reveal="{ delay: 0.2 }" class="between__close">
+    <p v-reveal="{ delay: 0.2 }" class="lead between__close">
       That's probably why I never really fit into one box.
     </p>
   </section>
 </template>
 
 <style scoped>
+/* Shell comes from `.chapter`; the ruled edges are this chapter's own. */
 .between {
-  position: relative;
-  padding: var(--s-7) var(--gutter) var(--s-7);
-  background: var(--wall);
   border-block: var(--hairline) solid var(--ink);
-}
-
-.between__head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-  margin-bottom: var(--s-6);
 }
 
 .between__lead {
@@ -201,13 +192,10 @@ function onLeave(index: number) {
   transition: --period var(--dur-fast) linear;
 }
 
+/* Type register comes from `.lead`. */
 .between__close {
   margin-top: var(--s-6);
   max-width: 24ch;
-  font-size: var(--t-large);
-  line-height: 1.25;
-  font-variation-settings: 'wdth' 96, 'wght' 300;
-  color: var(--ink);
 }
 
 @media (max-width: 640px) {

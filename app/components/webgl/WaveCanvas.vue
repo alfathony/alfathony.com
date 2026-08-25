@@ -39,6 +39,29 @@ const props = withDefaults(
   { portraitLines: undefined, trigger: null, resolveAt: 1 },
 )
 
+/**
+ * The uniform set built in `setup`, named as a type.
+ *
+ * `ShaderMaterial.uniforms` is declared with an open index signature, so under
+ * `noUncheckedIndexedAccess` every `uniforms.uFoo` lookup reads as possibly
+ * undefined and `frame` cannot touch one without a guard. This asserts the shape
+ * that is provably there twenty lines below. Type-level only — nothing about the
+ * material or the render changes.
+ */
+type WaveUniforms = Record<
+  | 'uMask'
+  | 'uTime'
+  | 'uFreq'
+  | 'uSeparation'
+  | 'uThin'
+  | 'uSolidify'
+  | 'uAmp'
+  | 'uPointer'
+  | 'uInk'
+  | 'uPaper',
+  THREE.IUniform
+>
+
 const stage = ref<HTMLElement | null>(null)
 const drawn = ref(false)
 
@@ -212,7 +235,7 @@ const { failed, ready } = useThreeStage(stage, {
 
   frame(_ctx, t) {
     if (!material) return
-    const u = material.uniforms
+    const u = material.uniforms as WaveUniforms
     const p = state.progress
 
     state.px += (state.tx - state.px) * 0.05

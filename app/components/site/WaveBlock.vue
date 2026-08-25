@@ -11,8 +11,20 @@
  * Canvas 2D rather than WebGL on purpose: there can be a dozen of these on the
  * page at once, and a dozen WebGL contexts is how you lose the frame budget. The
  * shader in WaveCanvas.vue is reserved for the one place it argues something.
+ *
+ * ---
+ *
+ * ONE CLOCK. This block does not own a requestAnimationFrame loop. It joins
+ * GSAP's ticker — the same clock Lenis and every ScrollTrigger already run on —
+ * so ten blocks cost one rAF between them rather than ten competing with it.
+ *
+ * And it only joins while it has something to do. Membership is dropped the
+ * frame the pointer ease settles, and again whenever the block scrolls out of
+ * view or the tab is hidden, which is the same rule `useThreeStage` applies to
+ * the WebGL stage. A wall of resting canvases costs nothing per frame.
  */
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { gsap } from 'gsap'
 import { prefersReducedMotion } from '~/composables/useReducedMotion'
 
 const props = withDefaults(
@@ -59,10 +71,21 @@ const canvas = ref<HTMLCanvasElement | null>(null)
 const host = ref<HTMLElement | null>(null)
 
 let ro: ResizeObserver | null = null
-let raf = 0
+let io: IntersectionObserver | null = null
+let onVisibility: (() => void) | null = null
+
 let pointer = 0
 let pointerTarget = 0
-let dirty = true
+
+/** True once this block is on the ticker. Never more than one callback. */
+let running = false
+/** Whether this block reacts to the pointer at all. Fixed at mount. */
+let animated = false
+let visible = false
+let tabVisible = true
+
+/** Below this the ease has arrived and there is nothing left to draw. */
+const SETTLED = 0.0005
 
 function paint() {
   const el = canvas.value
@@ -123,53 +146,142 @@ function paint() {
   }
 }
 
-function loop() {
-  raf = requestAnimationFrame(loop)
+/* ------------------------------------------------------------- clock ---- */
+
+function setRunning(next: boolean) {
+  if (next === running) return
+  running = next
+  if (running) gsap.ticker.add(tick)
+  else gsap.ticker.remove(tick)
+}
+
+/**
+ * Ease toward the pointer target, then get off the ticker.
+ *
+ * Same 0.07 lerp and same settle threshold the old rAF loop used, so the swell
+ * arrives with exactly the weight it did before — GSAP's ticker and rAF both
+ * run at display rate, so a frame here is the same length as a frame there.
+ */
+function tick() {
   const next = pointer + (pointerTarget - pointer) * 0.07
-  if (Math.abs(next - pointer) > 0.0005 || dirty) {
+  if (Math.abs(next - pointer) > SETTLED) {
     pointer = next
-    dirty = false
+    paint()
+    return
+  }
+
+  // Land exactly on the target, draw the final frame, then stop costing
+  // anything at all until the pointer moves again.
+  if (pointer !== pointerTarget) {
+    pointer = pointerTarget
     paint()
   }
+  setRunning(false)
 }
+
+/** Rejoin the ticker, if there is anything to animate and anyone to see it. */
+function wake() {
+  if (!animated || !visible || !tabVisible) return
+  if (pointer === pointerTarget) return
+  setRunning(true)
+}
+
+function evaluate() {
+  if (!visible || !tabVisible) {
+    setRunning(false)
+    return
+  }
+  wake()
+}
+
+/* ----------------------------------------------------------- pointer ---- */
 
 function onMove(e: PointerEvent) {
   const box = host.value
   if (!box) return
   const r = box.getBoundingClientRect()
   pointerTarget = ((e.clientY - r.top) / r.height - 0.5) * 2
+  wake()
 }
 
 function onLeave() {
   pointerTarget = 0
+  wake()
 }
+
+/* --------------------------------------------------------- lifecycle ---- */
 
 onMounted(() => {
   paint()
-  ro = new ResizeObserver(() => {
-    dirty = true
-    paint()
-  })
+
+  ro = new ResizeObserver(() => paint())
   if (host.value) ro.observe(host.value)
 
-  if (props.reactive && !prefersReducedMotion()) {
-    host.value?.addEventListener('pointermove', onMove)
-    host.value?.addEventListener('pointerleave', onLeave)
-    raf = requestAnimationFrame(loop)
+  animated = props.reactive && !prefersReducedMotion()
+  if (!animated || !host.value) return
+
+  host.value.addEventListener('pointermove', onMove)
+  host.value.addEventListener('pointerleave', onLeave)
+
+  io = new IntersectionObserver(
+    (entries) => {
+      const next = entries.some((entry) => entry.isIntersecting)
+
+      // Scrolling a block away does not fire pointerleave, so it could return
+      // still holding a swell. Send it back to rest while nobody is looking.
+      if (visible && !next && pointer !== 0) {
+        pointerTarget = 0
+        pointer = 0
+        paint()
+      }
+
+      visible = next
+      evaluate()
+    },
+    // Start a beat before it scrolls into view, matching the WebGL stage.
+    { rootMargin: '15% 0px 15% 0px' },
+  )
+  io.observe(host.value)
+
+  onVisibility = () => {
+    tabVisible = document.visibilityState === 'visible'
+    evaluate()
   }
+  document.addEventListener('visibilitychange', onVisibility)
 })
 
 onBeforeUnmount(() => {
+  setRunning(false)
+
   ro?.disconnect()
-  cancelAnimationFrame(raf)
+  io?.disconnect()
+  ro = null
+  io = null
+
+  if (onVisibility) document.removeEventListener('visibilitychange', onVisibility)
+  onVisibility = null
+
   host.value?.removeEventListener('pointermove', onMove)
   host.value?.removeEventListener('pointerleave', onLeave)
 })
 
-watch(() => [props.frequency, props.amplitude, props.weight, props.duty, props.accent], () => {
-  dirty = true
-  paint()
-})
+// Every prop that changes what gets drawn. `cycles`, `phase` and `vertical`
+// were missing here before, so retuning them appeared to do nothing until
+// something else happened to trigger a repaint.
+watch(
+  () => [
+    props.frequency,
+    props.amplitude,
+    props.cycles,
+    props.duty,
+    props.weight,
+    props.phase,
+    props.vertical,
+    props.accent,
+  ],
+  () => paint(),
+  { flush: 'post' },
+)
 </script>
 
 <template>
