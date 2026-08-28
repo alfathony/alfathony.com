@@ -23,7 +23,7 @@ import type { Scene } from '~/content/narrative'
 const props = defineProps<{ scene: Scene }>()
 
 const root = useTemplateRef<HTMLElement>('root')
-useNarrativeMotion(root, () => props.scene.tempo ?? 'settle')
+useNarrativeMotion(root, () => props.scene.tempo ?? 'settle', () => props.scene.curve ?? 'steady')
 
 const kindClass: Record<string, string> = {
   'display-xl': 't-display-xl',
@@ -43,10 +43,11 @@ const hasRibbon = computed(() => props.scene.ribbons.length > 0)
     :class="{ 'scene--no-ribbon': !hasRibbon }"
     :data-scene="scene.id"
     :data-tempo="scene.tempo ?? 'settle'"
+    :data-curve="scene.curve ?? 'steady'"
     :data-pace="scene.pace ?? 'default'"
   >
     <div class="scene__ribbon">
-      <NarrativeRibbon v-if="hasRibbon" :paths="scene.ribbons" :state="scene.id" />
+      <NarrativeRibbon v-if="hasRibbon" :paths="scene.ribbons" :state="scene.id" :view-box="scene.viewBox" />
     </div>
 
     <div class="scene__stage">

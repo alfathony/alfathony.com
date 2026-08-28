@@ -356,10 +356,28 @@ button {
 
 .ribbon__path {
   fill: none;
-  stroke-width: var(--ribbon-width);
+  /*
+    The stroke scales with the canvas so `pathLength` normalisation applies to
+    the dash pattern. The engine writes `--stroke-user` on resize: the design's
+    fixed 150 / 96 / 64px converted into user units for the current render
+    size, so the ribbon holds its specified width without the
+    `non-scaling-stroke` that silently disabled the draw.
+  */
+  stroke-width: var(--stroke-user, 150);
   stroke-linecap: round;
   stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
+
+  /*
+    `0 <tail> <segment> 2` — a zero dash, a gap to the tail, the visible arc,
+    then a gap long enough that the pattern never repeats. Advancing `--seg`
+    moves the head along the path; advancing `--tail` with it retracts the
+    line.
+
+    The defaults are the finished state: a full path from 0 to 1. That is what
+    renders when the engine never runs — no script, or reduced motion — so
+    nothing can be left half drawn.
+  */
+  stroke-dasharray: 0 var(--tail, 0) var(--seg, 1) 2;
 }
 
 .ribbon__path[data-color='cobalt']      { stroke: var(--color-cobalt-500); }
@@ -378,77 +396,32 @@ button {
 /*  Nothing here can leave content hidden.                                   */
 /* ======================================================================== */
 
-/* -------------------------------------------------------------- ribbon --- */
-/*
-  Each path is renormalised to `pathLength="1"`, so one dash of length 1 is the
-  whole path whatever its real geometry, and the draw is just the offset. No
-  measurement, no recalculation on resize.
-
-  `--i` staggers multi-path scenes: path 0 leads, each subsequent path starts a
-  fifth of the scene later and they overlap — which is how peak complexity
-  accumulates instead of appearing all at once.
-*/
-.ribbon__path {
-  stroke-dasharray: 1;
-  /* Single path: the draw simply tracks the scene's progress. */
-  --p: clamp(0, var(--draw, 1), 1);
-  stroke-dashoffset: calc(1 - var(--p));
-}
-
-/*
-  More than one path in a scene, so they accumulate rather than arrive together:
-  each starts a fifth of the scene after the one before and they overlap. This
-  is how the peak-complexity beat builds Cobalt, then Red, then Yellow.
-*/
-.ribbon--multi .ribbon__path {
-  /*
-    Each path starts a fifth of the scene after the one before, and 1.75 is what
-    makes the last of three still reach full length by the time the scene
-    settles: 2 x 0.2 offset + 1/1.75 span = 0.97. At 1.6 the final path stalls
-    at 96% drawn and the peak never actually completes.
-  */
-  --p: clamp(0, calc((var(--draw, 1) - var(--i, 0) * 0.2) * 1.75), 1);
-}
-
 /* ---------------------------------------------------------------- copy --- */
 /*
-  Fade and a short lift, nothing else. No word splitting, no letter animation,
-  no typewriter: the text is one live, selectable text node throughout.
+  Fade and a short lift, driven by the same scene progress as the ribbon.
+
+  Deriving it from `--sp` rather than a latched class is what makes it
+  reversible: scrolling back up returns the copy to where it came from, and a
+  fast flick lands on the right state instead of an interrupted transition.
+  There is no transition to interrupt.
+
+  `--sp` defaults to 1, so with no engine — script blocked, or reduced motion —
+  every line is simply present. The multiplier is steep enough (x18, about 5%
+  of a scene) that copy is never caught sitting at half opacity.
+
+  No word splitting, no letter animation, no typewriter: the text is one live,
+  selectable text node throughout, and nothing is hidden from assistive
+  technology.
 */
-[data-armed] .reveal {
-  opacity: 0;
-  transform: translate3d(0, var(--copy-shift), 0);
-  transition:
-    opacity var(--copy-dur) var(--ease-out-expo),
-    transform var(--copy-dur) var(--ease-out-expo);
-  transition-delay: calc(var(--copy-lead) + var(--copy-i, 0) * var(--copy-step));
-}
-
-[data-armed][data-entered] .reveal {
-  opacity: 1;
-  transform: none;
-}
-
-/*
-  Per-tempo timing, so scenes do not all arrive at the same speed. A complexity
-  beat builds; a resolution beat is simply there.
-*/
-.scene[data-tempo='build'] {
-  --copy-dur: 700ms;
-  --copy-lead: 220ms;
-  --copy-step: 95ms;
-}
-
-.scene[data-tempo='settle'] {
-  --copy-dur: 560ms;
-  --copy-lead: 140ms;
-  --copy-step: 80ms;
-}
-
-.scene[data-tempo='direct'] {
-  --copy-dur: 420ms;
-  --copy-lead: 60ms;
-  --copy-step: 60ms;
+.scene__item,
+.reveal {
+  --reveal: clamp(
+    0,
+    calc((var(--sp, 1) - var(--copy-enter, 0.28) - var(--copy-i, 0) * 0.045) * 18),
+    1
+  );
+  opacity: var(--reveal);
+  transform: translate3d(0, calc((1 - var(--reveal)) * var(--copy-shift)), 0);
 }
 
 /*
@@ -458,13 +431,14 @@ button {
   page correct immediately instead of at the next reload.
 */
 @media (prefers-reduced-motion: reduce) {
-  [data-armed] .reveal {
+  .scene__item,
+  .reveal {
+    --reveal: 1;
     opacity: 1;
     transform: none;
-    transition: none;
   }
 
   .ribbon__path {
-    stroke-dashoffset: 0;
+    stroke-dasharray: none;
   }
 }

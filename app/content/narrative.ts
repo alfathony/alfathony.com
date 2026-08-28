@@ -26,7 +26,7 @@
 export type RibbonColor = 'cobalt' | 'cobalt-deep' | 'red' | 'yellow' | 'green'
 
 export interface RibbonPath {
-  /** Stable id — Phase 2 addresses paths by this, never by DOM position. */
+  /** Stable id — the choreography addresses paths by this, never by DOM position. */
   id: string
   /** Figma vector geometry, unmodified. */
   d: string
@@ -34,6 +34,28 @@ export interface RibbonPath {
   /** Figma frame offset inside the scene, when the ribbon frame is not at 0,0. */
   dx?: number
   dy?: number
+
+  /* ------------------------------------------------- choreography ---
+     All values are SCENE PROGRESS: 0 when the scene's top edge reaches the
+     bottom of the viewport, 1 when its bottom edge leaves the top. Omit them
+     and the path inherits its scene's tempo. */
+
+  /** Progress at which the head starts moving. */
+  enter?: number
+  /** Progress at which the head reaches the end of the path. */
+  exit?: number
+  /**
+   * Progress range over which the TAIL chases the head, so the path retracts
+   * out of the scene instead of simply sitting there. This is what makes
+   * simplification read as a release: the competing lines leave.
+   */
+  retract?: [number, number]
+  /**
+   * A fragment already drawn at progress 0, as a share of the path. Only the
+   * opening scene uses it — the ribbon is mid-journey when you arrive, it does
+   * not start from nothing and it does not arrive complete.
+   */
+  lead?: number
 }
 
 export type TextKind =
@@ -67,6 +89,17 @@ export interface SceneText {
 export type SceneTempo = 'build' | 'settle' | 'direct'
 
 /**
+ * The shape of a scene's draw over its scroll range.
+ *
+ * `steady`  — even travel. The default.
+ * `observe` — CH02. Advances, holds mid-scene, then resumes: the line looks
+ *             like it is noticing something rather than executing a plan.
+ * `iterate` — CH03. Slow to commit, quick through the middle, easing out —
+ *             the rhythm of trying something, and trying it again.
+ */
+export type SceneCurve = 'steady' | 'observe' | 'iterate'
+
+/**
  * How much scroll a scene is worth.
  *
  * Not a compaction exercise — the long form is the point. This only removes
@@ -82,6 +115,9 @@ export interface Scene {
   texts: SceneText[]
   tempo?: SceneTempo
   pace?: ScenePace
+  curve?: SceneCurve
+  /** Defaults to the 1440x900 Figma frame. */
+  viewBox?: string
 }
 
 export interface Chapter {
@@ -106,6 +142,20 @@ const ch01: Chapter = {
         {
           id: 'ch01-s01-hero',
           color: 'cobalt',
+          /*
+            The ribbon is already travelling when you arrive: `lead` puts a
+            fragment on screen at progress 0, entering from above the frame, and
+            the rest only advances as you scroll. It never draws itself to
+            completion while you sit still, and the opening line stays readable
+            throughout.
+
+            The range starts at 0.5 because that is where a page loaded at the
+            top already sits — the scene's own progress is half spent before a
+            visitor has done anything.
+          */
+          lead: 0.16,
+          enter: 0.5,
+          exit: 0.93,
           d: 'M1180 -160C1170 110 1190 190 1030 290C880 385 820 440 960 520C1120 610 1320 650 1120 790C980 890 930 990 930 1080'
         }
       ],
@@ -151,19 +201,36 @@ const ch01: Chapter = {
       tempo: 'build',
       pace: 'roomy',
       ribbons: [
+        /*
+          Cobalt establishes the route. Red enters against it. Yellow arrives
+          last and closes the tension — three separate arrivals, never one.
+
+          Then the release: Red and Yellow retract, tail chasing head, and the
+          scene hands a single cobalt line to the simplification beat. That
+          retraction is the release; without it "the line simplifies" is just
+          another drawing.
+        */
         {
           id: 'ch01-s04-cobalt',
           color: 'cobalt',
+          enter: 0.06,
+          exit: 0.42,
           d: 'M-170 710C90 710 90 170 430 170C760 170 690 710 420 710C150 710 270 360 650 360C1030 360 980 780 730 780'
         },
         {
           id: 'ch01-s04-red',
           color: 'red',
+          enter: 0.24,
+          exit: 0.62,
+          retract: [0.78, 0.95],
           d: 'M460 -120C460 170 850 130 850 420C850 700 560 720 560 460C560 210 1080 220 1080 560C1080 790 1280 820 1540 690'
         },
         {
           id: 'ch01-s04-yellow',
           color: 'yellow',
+          enter: 0.42,
+          exit: 0.78,
+          retract: [0.82, 0.98],
           d: 'M920 -100C920 170 1220 170 1220 420C1220 670 980 670 980 470C980 260 1320 300 1520 300'
         }
       ],
@@ -202,9 +269,11 @@ const ch01: Chapter = {
       tempo: 'build',
       pace: 'roomy',
       ribbons: [
-        { id: 'ch01-s07-problem', color: 'red', d: 'M-100 680H300C380 680 420 640 420 560V450' },
-        { id: 'ch01-s07-idea', color: 'cobalt', d: 'M420 450V320C420 240 460 200 540 200H850C930 200 970 240 970 320V450' },
-        { id: 'ch01-s07-product', color: 'green', d: 'M970 450V560C970 640 1010 680 1090 680H1540' }
+        /* Each segment starts where the last one finished, so the three beats
+           read as one line arriving in three stages rather than three drawings. */
+        { id: 'ch01-s07-problem', color: 'red', enter: 0.08, exit: 0.34, d: 'M-100 680H300C380 680 420 640 420 560V450' },
+        { id: 'ch01-s07-idea', color: 'cobalt', enter: 0.30, exit: 0.58, d: 'M420 450V320C420 240 460 200 540 200H850C930 200 970 240 970 320V450' },
+        { id: 'ch01-s07-product', color: 'green', enter: 0.54, exit: 0.82, d: 'M970 450V560C970 640 1010 680 1090 680H1540' }
       ],
       texts: [
         { id: 'ch01-s07-a-term', kind: 'heading', text: 'A problem.', x: 64, y: 82, w: 340 },
@@ -252,6 +321,7 @@ const ch02: Chapter = {
   scenes: [
     {
       id: 'ch02.s01',
+      curve: 'observe',
       tempo: 'direct',
       pace: 'default',
       ribbons: [
@@ -264,6 +334,7 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s02',
+      curve: 'observe',
       tempo: 'build',
       pace: 'roomy',
       ribbons: [
@@ -281,6 +352,7 @@ const ch02: Chapter = {
       /* Content order is fixed by the responsive rules: Habits → Expectations
          → Assumptions, whatever the composition does with them. */
       id: 'ch02.s03',
+      curve: 'observe',
       tempo: 'settle',
       pace: 'roomy',
       ribbons: [
@@ -298,6 +370,7 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s04',
+      curve: 'observe',
       tempo: 'build',
       pace: 'default',
       ribbons: [
@@ -314,6 +387,7 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s05',
+      curve: 'observe',
       tempo: 'settle',
       pace: 'tight',
       ribbons: [
@@ -329,6 +403,7 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s06',
+      curve: 'observe',
       tempo: 'settle',
       pace: 'roomy',
       ribbons: [
@@ -347,6 +422,7 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s07',
+      curve: 'observe',
       tempo: 'direct',
       pace: 'tight',
       ribbons: [
@@ -363,6 +439,7 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s08',
+      curve: 'observe',
       tempo: 'settle',
       pace: 'default',
       ribbons: [
@@ -378,6 +455,7 @@ const ch02: Chapter = {
     },
     {
       id: 'ch02.s09',
+      curve: 'observe',
       tempo: 'direct',
       pace: 'default',
       ribbons: [
@@ -406,6 +484,7 @@ const ch03: Chapter = {
   scenes: [
     {
       id: 'ch03.s01',
+      curve: 'iterate',
       tempo: 'settle',
       pace: 'default',
       ribbons: [
@@ -418,6 +497,7 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s02',
+      curve: 'iterate',
       tempo: 'settle',
       pace: 'default',
       ribbons: [
@@ -435,6 +515,7 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s03',
+      curve: 'iterate',
       tempo: 'build',
       pace: 'roomy',
       ribbons: [
@@ -452,6 +533,7 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s04',
+      curve: 'iterate',
       tempo: 'direct',
       pace: 'tight',
       ribbons: [
@@ -469,17 +551,24 @@ const ch03: Chapter = {
       /* The second and last beat where two paths run at once. Red is the
          friction crossing the cobalt line of the work. */
       id: 'ch03.s05',
+      curve: 'iterate',
       tempo: 'build',
       pace: 'roomy',
       ribbons: [
+        /* Deliberately out of step: Red cuts across while Cobalt is still
+           mid-sentence. Controlled disruption, not wobble. */
         {
           id: 'ch03-s05-cobalt',
           color: 'cobalt',
+          enter: 0.08,
+          exit: 0.52,
           d: 'M-150 690C180 690 150 160 500 160C850 160 790 700 490 700C190 700 320 360 800 360'
         },
         {
           id: 'ch03-s05-red',
           color: 'red',
+          enter: 0.30,
+          exit: 0.70,
           d: 'M500 -120C500 170 900 140 900 430C900 720 620 720 620 470C620 220 1090 220 1090 570C1090 780 1300 800 1560 680'
         }
       ],
@@ -489,6 +578,7 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s06',
+      curve: 'iterate',
       tempo: 'build',
       pace: 'roomy',
       ribbons: [
@@ -503,6 +593,7 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s07',
+      curve: 'iterate',
       tempo: 'settle',
       pace: 'default',
       ribbons: [
@@ -519,6 +610,7 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s08',
+      curve: 'iterate',
       tempo: 'direct',
       pace: 'default',
       ribbons: [
@@ -535,6 +627,7 @@ const ch03: Chapter = {
     },
     {
       id: 'ch03.s09',
+      curve: 'iterate',
       tempo: 'direct',
       pace: 'default',
       ribbons: [

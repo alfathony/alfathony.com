@@ -6,32 +6,33 @@
   `pointer-events: none` from the stylesheet, so it is out of the accessibility
   tree and can never intercept a click meant for the copy above it.
 
-  `preserveAspectRatio="none"` is deliberate and is what makes the composition
-  hold together. The SVG box is the same box the copy is positioned in, so a
-  path drawn at x=64 in Figma's 1440-wide canvas lands under the sentence Figma
-  also placed at x=64 — at any viewport width. The stroke does not stretch with
-  it, because `vector-effect: non-scaling-stroke` keeps stroke-width in screen
-  pixels; that is how the ribbon holds its specified 150 / 96 / 64px width per
-  breakpoint instead of quietly scaling with the canvas.
+  HOW THE DRAW WORKS
+  `pathLength="1"` renormalises every path to a single unit, so the visible arc
+  is a dash pattern in path-fraction terms regardless of the real geometry:
+  `0 <tail> <segment> 2` paints from `tail` to `tail + segment` and nothing
+  else. Animating `segment` advances the head; animating `tail` alongside it
+  retracts the line. Both come from the engine as plain numbers.
 
-  DRAWING
-  `pathLength="1"` is the whole trick. It renormalises the path so that, for
-  dash purposes, every path is exactly 1 unit long regardless of its real
-  geometry. That means the draw is `stroke-dasharray: 1` against a dashoffset of
-  `1 - progress`, in CSS, with no `getTotalLength()` call and no measurement of
-  any kind — nothing recalculates when the viewport changes, and adding a path
-  costs nothing.
+  WHY THE STROKE IS NOT non-scaling-stroke
+  It was, and that was the bug. Under `vector-effect: non-scaling-stroke` the
+  browser computes dash patterns in screen space and ignores `pathLength`
+  outright — measured: a 0.25 segment paints 96% of the path, so the ribbon was
+  fully inked at every scroll position and the "animation" moved a 1px dash
+  pattern by one pixel. The stroke now scales with the canvas, and the engine
+  converts the design's fixed 150/96/64px into user units on resize, which
+  holds the specified widths exactly while leaving the dash maths honest.
 
-  Where a scene carries more than one path, `--i` staggers them, so the
-  peak-complexity beat accumulates Cobalt, then Red, then Yellow rather than
-  flashing all three at once.
+  `xMidYMid meet` rather than `none` for the same reason: dashes need a uniform
+  scale. The scene box already carries the viewBox's aspect ratio, so this
+  changes no geometry — it only guarantees the uniformity the dash relies on.
 */
 import type { RibbonPath } from '~/content/narrative'
 
 defineProps<{
   paths: RibbonPath[]
-  /** Scene id, e.g. `ch01.peak` — the choreography's addressing handle. */
+  /** Scene id — the choreography's addressing handle. */
   state: string
+  viewBox?: string
 }>()
 </script>
 
@@ -40,20 +41,23 @@ defineProps<{
     class="ribbon"
     :class="{ 'ribbon--multi': paths.length > 1 }"
     :data-ribbon-state="state"
-    viewBox="0 0 1440 900"
-    preserveAspectRatio="none"
+    :viewBox="viewBox ?? '0 0 1440 900'"
+    preserveAspectRatio="xMidYMid meet"
     aria-hidden="true"
     focusable="false"
   >
     <path
-      v-for="(path, index) in paths"
+      v-for="path in paths"
       :id="path.id"
       :key="path.id"
       class="ribbon__path"
-      :style="{ '--i': index }"
       :data-color="path.color"
+      :data-enter="path.enter"
+      :data-exit="path.exit"
+      :data-retract="path.retract ? path.retract.join(',') : undefined"
+      :data-lead="path.lead"
       :d="path.d"
-      path-length="1"
+      pathLength="1"
       :transform="path.dx || path.dy ? `translate(${path.dx ?? 0} ${path.dy ?? 0})` : undefined"
     />
   </svg>

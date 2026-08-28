@@ -37,12 +37,16 @@ const leadIn: Scene = {
   id: 'ch04.settle',
   tempo: 'direct',
   pace: 'minimal',
-  ribbons: [{ id: 'ch04-settle', color: 'yellow', d: 'M-120 725H1560' }],
+  curve: 'steady',
+  /* Its own aspect, matching the band it renders into. A 1440x900 viewBox in a
+     1440x420 box would letterbox under `meet` and shrink the line to nothing. */
+  viewBox: '0 0 1440 420',
+  ribbons: [{ id: 'ch04-settle', color: 'yellow', d: 'M-120 210H1560' }],
   texts: []
 }
 
 const index = useTemplateRef<HTMLElement>('index')
-useNarrativeMotion(index, () => 'direct')
+useNarrativeMotion(index, () => 'direct', () => 'steady')
 
 const activeIndex = ref<number | null>(null)
 const stationary = ref(false)
@@ -57,6 +61,11 @@ const target = { x: 0, y: 0 }
 const eased = { x: 0, y: 0 }
 let frame = 0
 let primed = false
+/* Geometry cached when the pointer arrives: the active row's own box, which
+   the preview must clear outright, and the other rows' copy, which it should
+   avoid where it can. */
+let activeRect: DOMRect | null = null
+let softRects: DOMRect[] = []
 
 function canFollow() {
   return (
@@ -65,31 +74,84 @@ function canFollow() {
   )
 }
 
-/** Keep the whole preview on screen, whatever the pointer is doing. */
-function clampToViewport(x: number, y: number) {
+const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi)
+
+function overlap(x: number, y: number, w: number, h: number, r: DOMRect) {
+  const ox = Math.min(x + w, r.right) - Math.max(x, r.left)
+  const oy = Math.min(y + h, r.bottom) - Math.max(y, r.top)
+  return ox > 0 && oy > 0 ? ox * oy : 0
+}
+
+/**
+ * Place the preview clear of the row it belongs to.
+ *
+ * The candidates are anchored to the ROW's edges, not the cursor's — the cursor
+ * is inside the row, so every offset measured from it lands back on the copy it
+ * is meant to avoid. That was the collision: the preview sat wherever the
+ * pointer was, which is on top of the impact column.
+ *
+ * So: directly above or directly below the row, tracking the cursor
+ * horizontally. Clearing the active row is absolute; the other rows' copy is a
+ * cost to minimise, and drifting away from the cursor is a smaller cost again,
+ * so the preview stays near the pointer unless staying there would bury text.
+ */
+function place(cx: number, cy: number) {
   const node = preview.value
-  const margin = 16
   const w = node?.offsetWidth ?? 320
   const h = node?.offsetHeight ?? 214
-  return {
-    x: Math.min(Math.max(x, margin), window.innerWidth - w - margin),
-    y: Math.min(Math.max(y, margin), window.innerHeight - h - margin)
+  const gap = 16
+  const margin = 16
+  const maxX = window.innerWidth - w - margin
+  const maxY = window.innerHeight - h - margin
+
+  const ys = activeRect
+    ? [activeRect.bottom + gap, activeRect.top - h - gap]
+    : [cy + gap, cy - h - gap]
+  /*
+    A sweep of horizontal positions rather than a handful of fixed ones, so the
+    scorer lands on the NEAREST position that buries nothing instead of jumping
+    to one safe lane and parking there. The preview then glides with the pointer
+    and simply stops at the edge of the clear band — following, without sitting
+    on the copy.
+  */
+  const ideal = cx - w / 2
+  const xs = [ideal]
+  for (let step = 40; step <= 640; step += 40) xs.push(ideal - step, ideal + step)
+
+  let best = { x: clamp(cx - w / 2, margin, maxX), y: clamp(cy + gap, margin, maxY), score: Infinity }
+  for (const rawY of ys) {
+    for (const rawX of xs) {
+      const x = clamp(rawX, margin, maxX)
+      const y = clamp(rawY, margin, maxY)
+      let score = 0
+      /*
+        Clearing the active row is absolute. Other rows' copy is a real cost but
+        a payable one — directly above or below the active row IS another row,
+        so insisting on zero overlap there would park the preview in one spot
+        and stop it following the pointer at all, which is the behaviour this
+        interaction is for. Staying near the cursor is weighted heavily enough
+        that the preview tracks the pointer and only slides aside to dodge type.
+      */
+      if (activeRect) score += overlap(x, y, w, h, activeRect) * 1000
+      for (const r of softRects) score += overlap(x, y, w, h, r)
+      score += (Math.abs(x - rawX) + Math.abs(y - rawY)) * 26
+      if (score < best.score) best = { x, y, score }
+    }
   }
+  return best
 }
 
 function paint() {
   frame = 0
   if (activeIndex.value === null || stationary.value) return
 
-  /* Exponential ease toward the pointer — roughly the 120ms lag the handoff
-     asks for, without pinning the preview rigidly to the cursor. */
-  eased.x += (target.x - eased.x) * 0.16
-  eased.y += (target.y - eased.y) * 0.16
+  const goal = place(target.x, target.y)
+  /* Exponential ease toward the goal — smoothed, not pinned to the cursor. */
+  eased.x += (goal.x - eased.x) * 0.16
+  eased.y += (goal.y - eased.y) * 0.16
+  preview.value?.style.setProperty('transform', `translate3d(${eased.x}px, ${eased.y}px, 0)`)
 
-  const { x, y } = clampToViewport(eased.x, eased.y)
-  preview.value?.style.setProperty('transform', `translate3d(${x}px, ${y}px, 0)`)
-
-  if (Math.abs(target.x - eased.x) > 0.4 || Math.abs(target.y - eased.y) > 0.4) {
+  if (Math.abs(goal.x - eased.x) > 0.4 || Math.abs(goal.y - eased.y) > 0.4) {
     frame = requestAnimationFrame(paint)
   }
 }
@@ -98,16 +160,28 @@ function schedule() {
   if (!frame) frame = requestAnimationFrame(paint)
 }
 
+function cacheGeometry(row: HTMLElement | null) {
+  activeRect = row?.getBoundingClientRect() ?? null
+  softRects = row
+    ? [...document.querySelectorAll<HTMLElement>('.work__row')]
+        .filter((other) => other !== row)
+        .flatMap((other) => ['.work__name', '.work__impact'].map((sel) => other.querySelector<HTMLElement>(sel)))
+        .filter((el): el is HTMLElement => !!el)
+        .map((el) => el.getBoundingClientRect())
+    : []
+}
+
 function onPointerEnter(event: PointerEvent, i: number) {
   if (event.pointerType !== 'mouse' || !canFollow()) return
   stationary.value = false
   activeIndex.value = i
-  target.x = event.clientX + 28
-  target.y = event.clientY + 24
+  cacheGeometry(event.currentTarget as HTMLElement)
+  target.x = event.clientX
+  target.y = event.clientY
   if (!primed) {
-    /* First reveal snaps to the cursor rather than flying in from the corner. */
-    eased.x = target.x
-    eased.y = target.y
+    const goal = place(target.x, target.y)
+    eased.x = goal.x
+    eased.y = goal.y
     primed = true
   }
   schedule()
@@ -115,8 +189,8 @@ function onPointerEnter(event: PointerEvent, i: number) {
 
 function onPointerMove(event: PointerEvent) {
   if (activeIndex.value === null || stationary.value) return
-  target.x = event.clientX + 28
-  target.y = event.clientY + 24
+  target.x = event.clientX
+  target.y = event.clientY
   schedule()
 }
 
@@ -124,6 +198,8 @@ function clearPointer() {
   if (stationary.value) return
   activeIndex.value = null
   primed = false
+  activeRect = null
+  softRects = []
 }
 
 /* -------------------------------------------------------------- focus --- */
@@ -139,8 +215,12 @@ function onFocusIn(event: FocusEvent) {
   activeIndex.value = i
 
   nextTick(() => {
+    cacheGeometry(row)
     const rect = row.getBoundingClientRect()
-    const { x, y } = clampToViewport(rect.right - (preview.value?.offsetWidth ?? 320), rect.top)
+    /* Same scorer, anchored to the row's right edge instead of a cursor, so the
+       keyboard preview lands somewhere equally clear of the copy — and stays
+       there. */
+    const { x, y } = place(rect.right, rect.top + rect.height / 2)
     preview.value?.style.setProperty('transform', `translate3d(${x}px, ${y}px, 0)`)
   })
 }
@@ -151,6 +231,8 @@ function onFocusOut(event: FocusEvent) {
   if (!stationary.value) return
   activeIndex.value = null
   stationary.value = false
+  activeRect = null
+  softRects = []
 }
 
 onBeforeUnmount(() => {
